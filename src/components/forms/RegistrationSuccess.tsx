@@ -19,6 +19,9 @@ export interface RegistrationResult {
   contact_number_1: string;
   cricket_categories: string[];
   capacity_roles: string[];
+  jersey_size?: string;
+  jersey_number?: number;
+  jersey_name?: string;
   interested_in_captaincy?: boolean;
   created_at?: string;
 }
@@ -45,6 +48,9 @@ export function RegistrationSuccess({ data, onReset }: RegistrationSuccessProps)
         contact_number_1: data.contact_number_1,
         cricket_categories: data.cricket_categories,
         capacity_roles: data.capacity_roles,
+        jersey_size: data.jersey_size,
+        jersey_number: data.jersey_number,
+        jersey_name: data.jersey_name,
         created_at: data.created_at,
       }, branding);
     } finally {
@@ -77,6 +83,18 @@ export function RegistrationSuccess({ data, onReset }: RegistrationSuccessProps)
           />
           <SuccessRow label={gu.success.name} value={data.full_name} />
           <SuccessRow label={gu.success.mobile} value={data.contact_number_1} />
+          {data.jersey_size && data.jersey_number != null && (
+            <>
+              <SuccessRow label={gu.success.jerseySize} value={data.jersey_size} />
+              <SuccessRow
+                label={gu.success.jerseyNumber}
+                value={String(data.jersey_number)}
+              />
+            </>
+          )}
+          {data.jersey_name && (
+            <SuccessRow label={gu.success.jerseyName} value={data.jersey_name} />
+          )}
           <div>
             <dt className="text-sm font-medium text-slate-500">{gu.success.categories}</dt>
             <dd className="mt-2 flex flex-wrap gap-2">

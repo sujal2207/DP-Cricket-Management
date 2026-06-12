@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
       Address: c.address,
       "Contact Number 1": c.contact_number_1,
       "Contact Number 2": c.contact_number_2 || "",
+      "Jersey Size": c.jersey_size || "",
+      "Jersey Number": c.jersey_number ?? "",
+      "Jersey Name": c.jersey_name || "",
       Categories: c.cricket_categories.join(", "),
       "Captaincy Interest": (c.capacity_roles || []).includes("Interested in Captaincy")
         ? "Yes"
@@ -67,7 +70,7 @@ export async function GET(request: NextRequest) {
           doc.addPage();
           y = 15;
         }
-        const line = `${i + 1}. ${row["Full Name"]} | ${row["Contact Number 1"]} | ${row.Categories} | ${row["Registration Source"]}`;
+        const line = `${i + 1}. ${row["Full Name"]} | ${row["Jersey Size"]} #${row["Jersey Number"]} ${row["Jersey Name"]} | ${row["Contact Number 1"]} | ${row.Categories}`;
         const wrapped = doc.splitTextToSize(line, 270);
         doc.text(wrapped, 14, y);
         y += wrapped.length * 6;

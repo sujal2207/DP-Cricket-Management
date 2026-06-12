@@ -38,6 +38,9 @@ interface Cricketer {
   address: string;
   contact_number_1: string;
   contact_number_2?: string;
+  jersey_size?: string;
+  jersey_number?: number;
+  jersey_name?: string;
   cricket_categories: string[];
   capacity_roles?: string[];
   registration_source?: string;
@@ -286,6 +289,8 @@ export function CricketersTable() {
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] md:table-cell">Address</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">Contact 1</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] lg:table-cell">Contact 2</th>
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] sm:table-cell">Jersey</th>
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] lg:table-cell">Jersey Name</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] sm:table-cell">Categories</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] xl:table-cell">Captaincy</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] lg:table-cell">Source</th>
@@ -297,7 +302,7 @@ export function CricketersTable() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="table-row">
-                    {Array.from({ length: 10 }).map((_, j) => (
+                    {Array.from({ length: 12 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 animate-pulse rounded bg-[hsl(var(--muted))]" />
                       </td>
@@ -306,7 +311,7 @@ export function CricketersTable() {
                 ))
               ) : cricketers.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={12} className="px-4 py-12 text-center text-[hsl(var(--muted-foreground))]">
                     No cricketers found
                   </td>
                 </tr>
@@ -325,6 +330,18 @@ export function CricketersTable() {
                     <td className="px-4 py-3">{c.contact_number_1}</td>
                     <td className="hidden px-4 py-3 text-[hsl(var(--muted-foreground))] lg:table-cell">
                       {c.contact_number_2 || "—"}
+                    </td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      {c.jersey_size && c.jersey_number ? (
+                        <Badge variant="default">
+                          {c.jersey_size} #{c.jersey_number}
+                        </Badge>
+                      ) : (
+                        <span className="text-[hsl(var(--muted-foreground))]">—</span>
+                      )}
+                    </td>
+                    <td className="hidden max-w-[140px] truncate px-4 py-3 font-gujarati lg:table-cell">
+                      {c.jersey_name || "—"}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <div className="flex flex-wrap gap-1">
@@ -418,6 +435,16 @@ export function CricketersTable() {
               <Detail label="Contact 2" value={viewCricketer.contact_number_2 || "—"} />
               <Detail label="Registered" value={formatDate(viewCricketer.created_at)} />
               <Detail label="Registration Source" value={viewCricketer.registration_source || REGISTRATION_SOURCES.ADMIN} />
+              <Detail label="Jersey Size" value={viewCricketer.jersey_size || "—"} />
+              <Detail
+                label="Jersey Number"
+                value={
+                  viewCricketer.jersey_number != null
+                    ? String(viewCricketer.jersey_number)
+                    : "—"
+                }
+              />
+              <Detail label="Jersey Name" value={viewCricketer.jersey_name || "—"} />
             </div>
             <Detail label="Address" value={viewCricketer.address} />
             <div>
@@ -452,6 +479,10 @@ export function CricketersTable() {
               address: editCricketer.address,
               contact_number_1: editCricketer.contact_number_1,
               contact_number_2: editCricketer.contact_number_2 || "",
+              jersey_size: (editCricketer.jersey_size ||
+                "") as CricketerFormData["jersey_size"],
+              jersey_number: editCricketer.jersey_number ?? ("" as unknown as number),
+              jersey_name: editCricketer.jersey_name || "",
               cricket_categories: editCricketer.cricket_categories as CricketerFormData["cricket_categories"],
             }}
             onSuccess={() => {

@@ -14,6 +14,9 @@ export interface SlipData {
   contact_number_1: string;
   cricket_categories: string[];
   capacity_roles: string[];
+  jersey_size?: string;
+  jersey_number?: number;
+  jersey_name?: string;
   created_at?: string;
 }
 
@@ -53,6 +56,14 @@ export async function generateRegistrationSlip(
       data.capacity_roles.includes(CAPTAINCY_INTEREST) ? gu.success.yes : gu.success.no,
     ],
   ];
+
+  if (data.jersey_size && data.jersey_number != null) {
+    rows.push([gu.pdf.jerseySize, data.jersey_size]);
+    rows.push([gu.pdf.jerseyNumber, String(data.jersey_number)]);
+  }
+  if (data.jersey_name) {
+    rows.push([gu.pdf.jerseyName, data.jersey_name]);
+  }
 
   if (data.created_at) {
     rows.push([gu.pdf.date, formatDate(data.created_at)]);

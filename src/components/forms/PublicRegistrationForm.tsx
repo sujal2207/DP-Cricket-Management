@@ -7,16 +7,18 @@ import {
   publicCricketerSchema,
   type PublicCricketerFormData,
 } from "@/lib/validation";
-import { CRICKET_CATEGORIES, MAX_CATEGORY_SELECTIONS } from "@/lib/constants";
+import { CRICKET_CATEGORIES, MAX_CATEGORY_SELECTIONS, JERSEY_SIZES } from "@/lib/constants";
 import { gu } from "@/lib/translations/publicRegistrationGu";
 import { Button } from "@/components/ui/Button";
 import { PublicFormCard } from "@/components/forms/public/PublicFormCard";
 import {
   PublicFormInput,
   stripToDigits,
+  stripJerseyNumber,
   blockNonNumericKey,
 } from "@/components/forms/public/PublicFormInput";
 import { PublicFormTextarea } from "@/components/forms/public/PublicFormTextarea";
+import { PublicFormSelect } from "@/components/forms/public/PublicFormSelect";
 import { PublicCheckboxGroup } from "@/components/forms/public/PublicCheckboxGroup";
 import { cn } from "@/lib/utils";
 import {
@@ -25,16 +27,24 @@ import {
 } from "@/components/forms/RegistrationSuccess";
 import { useToast } from "@/components/providers/ToastProvider";
 
-const defaultValues: PublicCricketerFormData = {
+const defaultValues = {
   first_name: "",
   middle_name: "",
   last_name: "",
   address: "",
   contact_number_1: "",
   contact_number_2: "",
+  jersey_size: "",
+  jersey_number: "",
+  jersey_name: "",
   cricket_categories: [],
   interested_in_captaincy: false,
-};
+} as unknown as PublicCricketerFormData;
+
+const jerseySizeOptions = JERSEY_SIZES.map((size) => ({
+  value: size,
+  label: size,
+}));
 
 export function PublicRegistrationForm() {
   const { showToast } = useToast();
@@ -261,6 +271,69 @@ export function PublicRegistrationForm() {
                 error={errors.contact_number_2?.message}
               />
             )}
+          />
+        </div>
+      </PublicFormCard>
+
+      <PublicFormCard title={gu.form.jerseyTitle}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Controller
+            name="jersey_size"
+            control={control}
+            render={({ field }) => (
+              <PublicFormSelect
+                label={gu.form.jerseySize}
+                required
+                placeholder={gu.form.jerseySizePlaceholder}
+                options={jerseySizeOptions}
+                aria-invalid={!!errors.jersey_size}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
+                name={field.name}
+                error={errors.jersey_size?.message}
+              />
+            )}
+          />
+          <Controller
+            name="jersey_number"
+            control={control}
+            render={({ field }) => (
+              <PublicFormInput
+                label={gu.form.jerseyNumber}
+                required
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder={gu.form.jerseyNumberPlaceholder}
+                maxLength={2}
+                aria-invalid={!!errors.jersey_number}
+                value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                onKeyDown={blockNonNumericKey}
+                onChange={(e) => {
+                  field.onChange(stripJerseyNumber(e.target.value));
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  field.onChange(stripJerseyNumber(e.clipboardData.getData("text")));
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+                error={errors.jersey_number?.message}
+                hint={gu.form.jerseyNumberPlaceholder}
+              />
+            )}
+          />
+        </div>
+        <div className="mt-4">
+          <PublicFormInput
+            label={gu.form.jerseyName}
+            required
+            autoComplete="nickname"
+            placeholder={gu.form.jerseyNamePlaceholder}
+            aria-invalid={!!errors.jersey_name}
+            {...register("jersey_name")}
+            error={errors.jersey_name?.message}
           />
         </div>
       </PublicFormCard>

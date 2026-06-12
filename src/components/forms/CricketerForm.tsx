@@ -3,12 +3,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cricketerSchema, type CricketerFormData } from "@/lib/validation";
-import { CRICKET_CATEGORIES, MAX_CATEGORY_SELECTIONS } from "@/lib/constants";
+import { CRICKET_CATEGORIES, MAX_CATEGORY_SELECTIONS, JERSEY_SIZES } from "@/lib/constants";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckboxGroup } from "@/components/ui/CheckboxGroup";
+import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useState } from "react";
 
@@ -18,15 +19,23 @@ interface CricketerFormProps {
   mode?: "create" | "edit";
 }
 
-const defaultValues: CricketerFormData = {
+const defaultValues = {
   first_name: "",
   middle_name: "",
   last_name: "",
   address: "",
   contact_number_1: "",
   contact_number_2: "",
+  jersey_size: "",
+  jersey_number: "",
+  jersey_name: "",
   cricket_categories: [],
-};
+} as unknown as CricketerFormData;
+
+const jerseySizeOptions = JERSEY_SIZES.map((size) => ({
+  value: size,
+  label: size,
+}));
 
 export function CricketerForm({
   initialData,
@@ -161,6 +170,47 @@ export function CricketerForm({
             placeholder="Optional"
             {...register("contact_number_2")}
             error={errors.contact_number_2?.message}
+          />
+        </div>
+      </Card>
+
+      <Card
+        title="Jersey Information"
+        description="Jersey size, number, and name for printing"
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select
+            label="Jersey Size"
+            options={[
+              { value: "", label: "Select size" },
+              ...jerseySizeOptions,
+            ]}
+            value={watch("jersey_size") || ""}
+            onChange={(e) =>
+              setValue("jersey_size", e.target.value as CricketerFormData["jersey_size"], {
+                shouldValidate: true,
+              })
+            }
+            error={errors.jersey_size?.message}
+          />
+          <Input
+            label="Preferred Jersey Number"
+            required
+            type="number"
+            min={1}
+            max={99}
+            placeholder="1–99"
+            {...register("jersey_number", { valueAsNumber: true })}
+            error={errors.jersey_number?.message}
+          />
+        </div>
+        <div className="mt-4">
+          <Input
+            label="Jersey Name"
+            required
+            placeholder="Enter name for jersey printing"
+            {...register("jersey_name")}
+            error={errors.jersey_name?.message}
           />
         </div>
       </Card>

@@ -3,6 +3,10 @@ import {
   CricketCategory,
   RegistrationSource,
   REGISTRATION_SOURCES,
+  JERSEY_SIZES,
+  JERSEY_NUMBER_MIN,
+  JERSEY_NUMBER_MAX,
+  JerseySize,
 } from "@/lib/constants";
 import { normalizeTextInput } from "@/lib/gujarati-normalize";
 
@@ -11,6 +15,7 @@ const GUJARATI_TEXT_FIELDS = [
   "middle_name",
   "last_name",
   "address",
+  "jersey_name",
 ] as const;
 
 export interface ICricketer extends Document {
@@ -20,6 +25,9 @@ export interface ICricketer extends Document {
   address: string;
   contact_number_1: string;
   contact_number_2?: string;
+  jersey_size: JerseySize | "";
+  jersey_number?: number;
+  jersey_name: string;
   cricket_categories: CricketCategory[];
   capacity_roles: string[];
   registration_source: RegistrationSource;
@@ -35,6 +43,17 @@ const CricketerSchema = new Schema<ICricketer>(
     address: { type: String, required: true, trim: true },
     contact_number_1: { type: String, required: true, trim: true },
     contact_number_2: { type: String, trim: true, default: "" },
+    jersey_size: {
+      type: String,
+      enum: [...JERSEY_SIZES, ""],
+      default: "",
+    },
+    jersey_number: {
+      type: Number,
+      min: JERSEY_NUMBER_MIN,
+      max: JERSEY_NUMBER_MAX,
+    },
+    jersey_name: { type: String, trim: true, default: "", maxlength: 30 },
     cricket_categories: {
       type: [String],
       required: true,
@@ -63,6 +82,7 @@ CricketerSchema.index({ contact_number_1: 1 });
 CricketerSchema.index({ cricket_categories: 1 });
 CricketerSchema.index({ capacity_roles: 1 });
 CricketerSchema.index({ registration_source: 1 });
+CricketerSchema.index({ jersey_number: 1 });
 CricketerSchema.index({ created_at: -1 });
 
 CricketerSchema.pre("save", function normalizeGujaratiFields() {

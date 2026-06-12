@@ -24,6 +24,13 @@ export type RegistrationSource =
 
 export const MAX_CATEGORY_SELECTIONS = 2;
 
+export const JERSEY_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] as const;
+
+export type JerseySize = (typeof JERSEY_SIZES)[number];
+
+export const JERSEY_NUMBER_MIN = 1;
+export const JERSEY_NUMBER_MAX = 99;
+
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cricketer Management System";
 
 export const APP_BRAND_NAME = "DP Cricket Tournament";

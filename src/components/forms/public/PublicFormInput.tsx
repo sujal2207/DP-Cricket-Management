@@ -47,6 +47,10 @@ export function stripToDigits(value: string, maxLength = 10): string {
   return value.replace(/\D/g, "").slice(0, maxLength);
 }
 
+export function stripJerseyNumber(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 2);
+}
+
 export function blockNonNumericKey(e: React.KeyboardEvent<HTMLInputElement>) {
   if (
     e.ctrlKey ||

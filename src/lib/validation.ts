@@ -3,6 +3,9 @@ import {
   CRICKET_CATEGORIES,
   MAX_CATEGORY_SELECTIONS,
   CAPTAINCY_INTEREST,
+  JERSEY_SIZES,
+  JERSEY_NUMBER_MIN,
+  JERSEY_NUMBER_MAX,
 } from "./constants";
 import { gu } from "./translations/publicRegistrationGu";
 import { sanitizeString } from "./sanitize";
@@ -11,8 +14,52 @@ const mobileRegex = /^(\+?[1-9]\d{6,14}|[6-9]\d{9})$/;
 const indianMobileRegex = /^[6-9]\d{9}$/;
 const digitsOnlyRegex = /^\d+$/;
 const nameRegex = /^[\u0A80-\u0AFFa-zA-Z\s]{2,}$/;
+const jerseyNameRegex = /^[\u0A80-\u0AFFa-zA-Z\s.'-]{2,30}$/;
 
 const sanitizedString = z.string().transform(sanitizeString);
+
+const jerseySizeSchema = z.enum(JERSEY_SIZES, {
+  errorMap: () => ({ message: "Jersey size is required" }),
+});
+
+const jerseyNumberSchema = z.coerce
+  .number({
+    invalid_type_error: "Jersey number is required",
+  })
+  .int("Jersey number must be a whole number")
+  .min(JERSEY_NUMBER_MIN, `Jersey number must be between ${JERSEY_NUMBER_MIN} and ${JERSEY_NUMBER_MAX}`)
+  .max(JERSEY_NUMBER_MAX, `Jersey number must be between ${JERSEY_NUMBER_MIN} and ${JERSEY_NUMBER_MAX}`);
+
+const jerseyNameSchema = sanitizedString.pipe(
+  z
+    .string()
+    .min(2, "Jersey name must be at least 2 characters")
+    .max(30, "Jersey name must be at most 30 characters")
+    .regex(
+      jerseyNameRegex,
+      "Jersey name may only contain letters, spaces, and common name characters"
+    )
+);
+
+const publicJerseySizeSchema = z.enum(JERSEY_SIZES, {
+  errorMap: () => ({ message: gu.errors.jerseySizeRequired }),
+});
+
+const publicJerseyNumberSchema = z.coerce
+  .number({
+    invalid_type_error: gu.errors.jerseyNumberRequired,
+  })
+  .int(gu.errors.jerseyNumberInvalid)
+  .min(JERSEY_NUMBER_MIN, gu.errors.jerseyNumberRange)
+  .max(JERSEY_NUMBER_MAX, gu.errors.jerseyNumberRange);
+
+const publicJerseyNameSchema = sanitizedString.pipe(
+  z
+    .string()
+    .min(2, gu.errors.jerseyNameMin)
+    .max(30)
+    .regex(jerseyNameRegex, gu.errors.jerseyNameInvalid)
+);
 
 export const loginSchema = z.object({
   email: z
@@ -45,6 +92,9 @@ export const cricketerSchema = z
       .regex(mobileRegex, "Enter a valid mobile number (7-15 digits)")
       .optional()
       .or(z.literal("")),
+    jersey_size: jerseySizeSchema,
+    jersey_number: jerseyNumberSchema,
+    jersey_name: jerseyNameSchema,
     cricket_categories: z
       .array(z.enum(CRICKET_CATEGORIES))
       .min(1, "Select at least one cricket category")
@@ -112,6 +162,9 @@ export const publicCricketerSchema = z
       ])
       .optional()
       .transform((v) => v ?? ""),
+    jersey_size: publicJerseySizeSchema,
+    jersey_number: publicJerseyNumberSchema,
+    jersey_name: publicJerseyNameSchema,
     cricket_categories: z
       .array(z.enum(CRICKET_CATEGORIES))
       .min(1, gu.errors.categoryMin)
