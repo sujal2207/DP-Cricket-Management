@@ -8,7 +8,9 @@
     "start": "node scripts/next-port.js start",
     "lint": "next lint",
     "verify:gujarati": "node scripts/verify-gujarati-rendering.js",
-    "generate:favicons": "node scripts/generate-favicons.js"
+    "generate:favicons": "node scripts/generate-favicons.js",
+    "ensure:fonts": "node scripts/ensure-fonts.js",
+    "postinstall": "node scripts/ensure-fonts.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -25,6 +27,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
     "recharts": "^2.15.0",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^2.6.0",
     "xlsx": "^0.18.5",
     "zod": "^3.24.1"
