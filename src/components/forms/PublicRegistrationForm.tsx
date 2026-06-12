@@ -72,6 +72,8 @@ export function PublicRegistrationForm() {
     setValue,
     control,
     reset,
+    trigger,
+    setError,
     formState: { errors },
   } = useForm<PublicCricketerFormData>({
     resolver: zodResolver(publicCricketerSchema),
@@ -81,6 +83,14 @@ export function PublicRegistrationForm() {
   });
 
   const selectedCategories = watch("cricket_categories") || [];
+  const contactNumber1 = watch("contact_number_1");
+  const contactNumber2 = watch("contact_number_2");
+
+  useEffect(() => {
+    if (contactNumber2?.trim()) {
+      void trigger("contact_number_2");
+    }
+  }, [contactNumber1, contactNumber2, trigger]);
 
   useEffect(() => {
     fetch("/api/public/csrf")
@@ -139,9 +149,27 @@ export function PublicRegistrationForm() {
       const json = await res.json();
 
       if (!res.ok) {
-        const msg = json.error || gu.errors.submissionFailed;
+        const fieldErrors = json.details?.fieldErrors as
+          | Record<string, string[] | undefined>
+          | undefined;
+
+        if (fieldErrors) {
+          for (const [field, messages] of Object.entries(fieldErrors)) {
+            if (messages?.[0]) {
+              setError(field as keyof PublicCricketerFormData, {
+                message: messages[0],
+              });
+            }
+          }
+        }
+
+        const msg =
+          json.error ||
+          fieldErrors?.contact_number_1?.[0] ||
+          fieldErrors?.contact_number_2?.[0] ||
+          gu.errors.submissionFailed;
         showToast(msg, "error");
-        setCategoryError(json.details?.fieldErrors?.cricket_categories?.[0] || "");
+        setCategoryError(fieldErrors?.cricket_categories?.[0] || "");
         scrollToFirstError();
         return;
       }

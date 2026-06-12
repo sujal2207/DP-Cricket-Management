@@ -12,11 +12,39 @@ import {
 import { gu } from "./translations/publicRegistrationGu";
 import { sanitizeString } from "./sanitize";
 
-const mobileRegex = /^(\+?[1-9]\d{6,14}|\d{10})$/;
 const indianMobileRegex = /^\d{10}$/;
 const digitsOnlyRegex = /^\d+$/;
 const nameRegex = /^[\u0A80-\u0AFFa-zA-Z\s]{2,}$/;
 const jerseyNameRegex = /^[\u0A80-\u0AFFa-zA-Z\s.'-]{2,30}$/;
+
+/** Compare contact numbers after trimming; treats empty secondary as absent */
+function contactNumbersAreSame(primary: string, secondary: string | undefined): boolean {
+  const a = primary.trim();
+  const b = (secondary ?? "").trim();
+  if (!b) return false;
+  const aDigits = a.replace(/\D/g, "");
+  const bDigits = b.replace(/\D/g, "");
+  if (aDigits.length >= 10 && bDigits.length >= 10) {
+    return aDigits.slice(-10) === bDigits.slice(-10);
+  }
+  return a === b;
+}
+
+const adminContactOptionalSchema = z.union([
+  z.literal(""),
+  z
+    .string()
+    .trim()
+    .regex(digitsOnlyRegex, "Mobile number must contain digits only")
+    .regex(indianMobileRegex, "Enter a valid 10-digit mobile number"),
+]);
+
+const adminContactRequiredSchema = z
+  .string()
+  .trim()
+  .min(1, "Contact number 1 is required")
+  .regex(digitsOnlyRegex, "Mobile number must contain digits only")
+  .regex(indianMobileRegex, "Enter a valid 10-digit mobile number");
 
 const sanitizedString = z.string().transform(sanitizeString);
 
@@ -102,15 +130,8 @@ export const cricketerSchema = z
       z.string().min(1, "Full address is required").max(500)
     ),
     age: ageSchema,
-    contact_number_1: z
-      .string()
-      .min(1, "Contact number 1 is required")
-      .regex(mobileRegex, "Enter a valid mobile number (7-15 digits)"),
-    contact_number_2: z
-      .string()
-      .regex(mobileRegex, "Enter a valid mobile number (7-15 digits)")
-      .optional()
-      .or(z.literal("")),
+    contact_number_1: adminContactRequiredSchema,
+    contact_number_2: adminContactOptionalSchema.optional().transform((v) => v ?? ""),
     jersey_size: jerseySizeSchema,
     jersey_number: jerseyNumberSchema,
     jersey_name: jerseyNameSchema,
@@ -123,12 +144,9 @@ export const cricketerSchema = z
       ),
   })
   .refine(
-    (data) => {
-      if (!data.contact_number_2) return true;
-      return data.contact_number_1 !== data.contact_number_2;
-    },
+    (data) => !contactNumbersAreSame(data.contact_number_1, data.contact_number_2),
     {
-      message: "Contact numbers must be different",
+      message: "Contact Number 2 must be different from Contact Number 1",
       path: ["contact_number_2"],
     }
   );
@@ -195,10 +213,7 @@ export const publicCricketerSchema = z
     interested_in_captaincy: z.boolean().default(false),
   })
   .refine(
-    (data) => {
-      if (!data.contact_number_2) return true;
-      return data.contact_number_1 !== data.contact_number_2;
-    },
+    (data) => !contactNumbersAreSame(data.contact_number_1, data.contact_number_2),
     {
       message: gu.errors.contactDifferent,
       path: ["contact_number_2"],

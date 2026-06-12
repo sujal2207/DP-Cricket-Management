@@ -8,6 +8,10 @@ import { createNotification } from "@/lib/notifications";
 import { REGISTRATION_SOURCES, CAPTAINCY_INTEREST } from "@/lib/constants";
 import { logAudit } from "@/lib/audit";
 import { gu } from "@/lib/translations/publicRegistrationGu";
+import {
+  findMobileRegistrationConflict,
+  normalizeContactFields,
+} from "@/lib/contact-uniqueness";
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,22 +44,36 @@ export async function POST(request: NextRequest) {
     }
 
     const { interested_in_captaincy, ...data } = parsed.data;
+    const normalized = normalizeContactFields(data);
 
     const capacity_roles = interested_in_captaincy ? [CAPTAINCY_INTEREST] : [];
 
     await connectDB();
 
-    const existing = await Cricketer.findOne({
-      contact_number_1: data.contact_number_1,
-    });
+    const conflict = await findMobileRegistrationConflict(
+      Cricketer,
+      normalized.contact_number_1,
+      normalized.contact_number_2
+    );
 
-    if (existing) {
-      return NextResponse.json({ error: gu.errors.duplicateMobile }, { status: 409 });
+    if (conflict) {
+      const message =
+        conflict.field === "contact_number_1"
+          ? gu.errors.duplicateMobile
+          : gu.errors.duplicateMobileRegistered;
+
+      return NextResponse.json(
+        {
+          error: message,
+          details: { fieldErrors: { [conflict.field]: [message] } },
+        },
+        { status: 409 }
+      );
     }
 
     const cricketer = await Cricketer.create({
-      ...data,
-      contact_number_2: data.contact_number_2 || "",
+      ...normalized,
+      contact_number_2: normalized.contact_number_2 || "",
       capacity_roles,
       registration_source: REGISTRATION_SOURCES.PUBLIC,
     });
@@ -73,7 +91,7 @@ export async function POST(request: NextRequest) {
       cricketerName: fullName,
       action: "CREATE",
       performedBy: "Public Registration",
-      changes: { ...data, registration_source: REGISTRATION_SOURCES.PUBLIC },
+      changes: { ...normalized, registration_source: REGISTRATION_SOURCES.PUBLIC },
     });
 
     return NextResponse.json(

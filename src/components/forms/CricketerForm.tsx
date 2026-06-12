@@ -14,7 +14,7 @@ import {
 } from "@/components/forms/CategorySelectionGroup";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/providers/ToastProvider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CricketerFormProps {
   initialData?: CricketerFormData & { _id?: string };
@@ -54,13 +54,24 @@ export function CricketerForm({
     handleSubmit,
     watch,
     setValue,
+    setError,
+    trigger,
     formState: { errors },
   } = useForm<CricketerFormData>({
     resolver: zodResolver(cricketerSchema),
     defaultValues: initialData || defaultValues,
+    mode: "onBlur",
   });
 
   const selectedCategories = watch("cricket_categories") || [];
+  const contactNumber1 = watch("contact_number_1");
+  const contactNumber2 = watch("contact_number_2");
+
+  useEffect(() => {
+    if (contactNumber2?.trim()) {
+      void trigger("contact_number_2");
+    }
+  }, [contactNumber1, contactNumber2, trigger]);
 
   const toggleCategory = (category: (typeof CRICKET_CATEGORIES)[number]) => {
     const current = selectedCategories;
@@ -102,9 +113,23 @@ export function CricketerForm({
       const result = await res.json();
 
       if (!res.ok) {
+        const fieldErrors = result.details?.fieldErrors as
+          | Record<string, string[] | undefined>
+          | undefined;
+
+        if (fieldErrors) {
+          for (const [field, messages] of Object.entries(fieldErrors)) {
+            if (messages?.[0]) {
+              setError(field as keyof CricketerFormData, { message: messages[0] });
+            }
+          }
+        }
+
         const msg =
           result.error ||
-          result.details?.fieldErrors?.cricket_categories?.[0] ||
+          fieldErrors?.contact_number_1?.[0] ||
+          fieldErrors?.contact_number_2?.[0] ||
+          fieldErrors?.cricket_categories?.[0] ||
           "Submission failed";
         showToast(msg, "error");
         return;
@@ -183,6 +208,8 @@ export function CricketerForm({
             label="Contact Number 1"
             required
             type="tel"
+            inputMode="numeric"
+            maxLength={10}
             placeholder="e.g. 9876543210"
             {...register("contact_number_1")}
             error={errors.contact_number_1?.message}
@@ -190,7 +217,9 @@ export function CricketerForm({
           <Input
             label="Contact Number 2"
             type="tel"
-            placeholder="Optional"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="Optional — must differ from Contact 1"
             {...register("contact_number_2")}
             error={errors.contact_number_2?.message}
           />

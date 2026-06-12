@@ -7,6 +7,10 @@ import { getAdminEmailFromSession } from "@/lib/admin-credentials";
 import { logAudit } from "@/lib/audit";
 import { formatFullName } from "@/lib/validation";
 import { ITEMS_PER_PAGE, CAPTAINCY_INTEREST } from "@/lib/constants";
+import {
+  findMobileRegistrationConflict,
+  normalizeContactFields,
+} from "@/lib/contact-uniqueness";
 
 export async function GET(request: NextRequest) {
   try {
@@ -112,30 +116,40 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const data = parsed.data;
+    const normalized = normalizeContactFields(parsed.data);
 
-    const existing = await Cricketer.findOne({
-      contact_number_1: data.contact_number_1,
-    });
+    const conflict = await findMobileRegistrationConflict(
+      Cricketer,
+      normalized.contact_number_1,
+      normalized.contact_number_2
+    );
 
-    if (existing) {
+    if (conflict) {
+      const message =
+        conflict.field === "contact_number_1"
+          ? "This mobile number is already registered"
+          : "This mobile number is already used in another registration";
+
       return NextResponse.json(
-        { error: "A cricketer with this contact number already exists" },
+        {
+          error: message,
+          details: { fieldErrors: { [conflict.field]: [message] } },
+        },
         { status: 409 }
       );
     }
 
     const cricketer = await Cricketer.create({
-      ...data,
-      contact_number_2: data.contact_number_2 || "",
+      ...normalized,
+      contact_number_2: normalized.contact_number_2 || "",
       capacity_roles: [],
       registration_source: "Admin Panel",
     });
 
     const fullName = formatFullName(
-      data.first_name,
-      data.middle_name,
-      data.last_name
+      normalized.first_name,
+      normalized.middle_name,
+      normalized.last_name
     );
 
     await logAudit({
@@ -143,7 +157,7 @@ export async function POST(request: NextRequest) {
       cricketerName: fullName,
       action: "CREATE",
       performedBy: getAdminEmailFromSession(session),
-      changes: data,
+      changes: normalized,
     });
 
     return NextResponse.json(

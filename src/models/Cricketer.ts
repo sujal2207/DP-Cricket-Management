@@ -11,6 +11,7 @@ import {
   JerseySize,
 } from "@/lib/constants";
 import { normalizeTextInput } from "@/lib/gujarati-normalize";
+import { normalizeMobileNumber } from "@/lib/contact-uniqueness";
 
 const GUJARATI_TEXT_FIELDS = [
   "first_name",
@@ -86,7 +87,8 @@ const CricketerSchema = new Schema<ICricketer>(
 );
 
 CricketerSchema.index({ first_name: "text", middle_name: "text", last_name: "text" });
-CricketerSchema.index({ contact_number_1: 1 });
+CricketerSchema.index({ contact_number_1: 1 }, { unique: true });
+CricketerSchema.index({ contact_number_2: 1 });
 CricketerSchema.index({ cricket_categories: 1 });
 CricketerSchema.index({ capacity_roles: 1 });
 CricketerSchema.index({ registration_source: 1 });
@@ -99,6 +101,13 @@ CricketerSchema.pre("save", function normalizeGujaratiFields() {
     if (typeof value === "string") {
       this[field] = normalizeTextInput(value);
     }
+  }
+
+  if (typeof this.contact_number_1 === "string" && this.contact_number_1) {
+    this.contact_number_1 = normalizeMobileNumber(this.contact_number_1);
+  }
+  if (typeof this.contact_number_2 === "string" && this.contact_number_2) {
+    this.contact_number_2 = normalizeMobileNumber(this.contact_number_2);
   }
 });
 

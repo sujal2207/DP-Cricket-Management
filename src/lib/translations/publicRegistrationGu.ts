@@ -48,7 +48,7 @@ export const gu = {
     contact1: "મોબાઇલ નંબર 1",
     contact2: "મોબાઇલ નંબર 2",
     contact1Placeholder: "10 અંકનો મોબાઇલ નંબર",
-    contact2Placeholder: "વૈકલ્પિક",
+    contact2Placeholder: "વૈકલ્પિક — નંબર 1 થી અલગ હોવો જોઈએ",
     jerseyTitle: "જર્સી માહિતી",
     jerseySize: "જર્સી સાઈઝ",
     jerseySizePlaceholder: "જર્સી સાઈઝ પસંદ કરો",
@@ -94,6 +94,8 @@ export const gu = {
     rateLimit: "ઘણા બધા પ્રયાસો. કૃપા કરીને થોડી વાર પછી ફરી પ્રયાસ કરો.",
     validationFailed: "માહિતી યોગ્ય નથી. કૃપા કરીને ફોર્મ તપાસો.",
     duplicateMobile: "આ મોબાઇલ નંબર સાથે પહેલેથી નોંધણી થયેલ છે",
+    duplicateMobileRegistered:
+      "આ મોબાઇલ નંબર પહેલેથી બીજા ખેલાડીની નોંધણીમાં ઉપયોગ થયેલ છે",
     submitFailed: "નોંધણી સબમિટ કરવામાં નિષ્ફળ. ફરી પ્રયાસ કરો.",
     receiptInvalid: "રસીદ માટેની માહિતી અમાન્ય છે.",
     receiptNotFound: "નોંધણી મળી નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
