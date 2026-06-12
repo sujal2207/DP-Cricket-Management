@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout title="Cricketer Management System">
-      <div className="space-y-8">
+      <div className="admin-page">
         <div className="page-header">
           <div>
             <h2 className="page-title">Dashboard</h2>

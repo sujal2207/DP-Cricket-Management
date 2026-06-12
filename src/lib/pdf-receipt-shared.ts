@@ -2,9 +2,20 @@ import type { jsPDF } from "jspdf";
 import { formatFullName } from "./validation";
 import { CAPTAINCY_INTEREST } from "./constants";
 import { gu, getCategoryLabel } from "./translations/publicRegistrationGu";
-import { setGujaratiPdfFont, GUJARATI_PDF_FONT_NAME } from "./pdf-gujarati-font-core";
+import {
+  setGujaratiPdfFont,
+  GUJARATI_PDF_FONT_NAME,
+} from "./pdf-gujarati-font-core";
+import {
+  formatPdfValue,
+  formatPdfDateTime,
+  PDF_NOT_APPLICABLE,
+  detectPdfTextFont,
+  setPdfTextFont,
+  type PdfTextFont,
+} from "./pdf-cell-utils";
 
-export const RECEIPT_NOT_APPLICABLE = "N/A";
+export const RECEIPT_NOT_APPLICABLE = PDF_NOT_APPLICABLE;
 
 export interface RegistrationReceiptData {
   id: string;
@@ -23,7 +34,7 @@ export interface RegistrationReceiptData {
   created_at?: Date | string | null;
 }
 
-export type ReceiptValueFont = "gujarati" | "latin";
+export type ReceiptValueFont = PdfTextFont;
 
 export interface ReceiptRowDefinition {
   label: string;
@@ -41,32 +52,10 @@ const TABLE_WIDTH = 170;
 const LABEL_WIDTH = 68;
 const VALUE_WIDTH = TABLE_WIDTH - LABEL_WIDTH;
 const FONT_SIZE = 10;
-const LINE_HEIGHT = 4.8;
+const LINE_HEIGHT = 5;
 const CELL_PADDING = 3;
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-] as const;
-
-function detectValueFont(text: string): ReceiptValueFont {
-  if (text === RECEIPT_NOT_APPLICABLE || /^[\x00-\x7F]*$/.test(text)) {
-    return "latin";
-  }
-  return /[\u0A80-\u0AFF]/.test(text) ? "gujarati" : "latin";
-}
-
-function row(
+function receiptRow(
   label: string,
   value: string,
   valueFont?: ReceiptValueFont
@@ -74,33 +63,12 @@ function row(
   return {
     label,
     value,
-    valueFont: valueFont ?? detectValueFont(value),
+    valueFont: valueFont ?? detectPdfTextFont(value),
   };
 }
 
-/** ASCII-only date for reliable PDF rendering with Helvetica */
-export function formatReceiptDateForPdf(date: string | Date): string {
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return RECEIPT_NOT_APPLICABLE;
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const hours = d.getHours();
-  const h12 = hours % 12 || 12;
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  return `${pad(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${pad(h12)}:${pad(d.getMinutes())} ${ampm}`;
-}
-
-export function formatReceiptValue(
-  value: string | number | null | undefined
-): string {
-  if (value === null || value === undefined) return RECEIPT_NOT_APPLICABLE;
-  if (typeof value === "number") {
-    return Number.isNaN(value) ? RECEIPT_NOT_APPLICABLE : String(value);
-  }
-  const trimmed = value.trim();
-  return trimmed === "" ? RECEIPT_NOT_APPLICABLE : trimmed;
-}
+export const formatReceiptValue = formatPdfValue;
+export const formatReceiptDateForPdf = formatPdfDateTime;
 
 export function mapCricketerToReceiptData(
   cricketer: Record<string, unknown>
@@ -161,41 +129,27 @@ export function buildReceiptRowDefinitions(
   const categories =
     data.cricket_categories.length > 0
       ? data.cricket_categories.map((c) => getCategoryLabel(c)).join(", ")
-      : RECEIPT_NOT_APPLICABLE;
+      : PDF_NOT_APPLICABLE;
   const captaincy = (data.capacity_roles || []).includes(CAPTAINCY_INTEREST)
     ? gu.success.yes
     : gu.success.no;
-  const dateStr = data.created_at
-    ? formatReceiptDateForPdf(data.created_at)
-    : RECEIPT_NOT_APPLICABLE;
+  const dateStr = formatPdfDateTime(data.created_at);
 
   return [
-    row(gu.pdf.registrationId, data.id.slice(-8).toUpperCase(), "latin"),
-    row(gu.pdf.fullName, formatReceiptValue(fullName)),
-    row(gu.pdf.fathersName, formatReceiptValue(data.middle_name)),
-    row(gu.pdf.age, formatReceiptValue(data.age), "latin"),
-    row(gu.pdf.address, formatReceiptValue(data.address)),
-    row(gu.pdf.mobile1, formatReceiptValue(data.contact_number_1), "latin"),
-    row(gu.pdf.mobile2, formatReceiptValue(data.contact_number_2), "latin"),
-    row(gu.pdf.jerseySize, formatReceiptValue(data.jersey_size), "latin"),
-    row(gu.pdf.jerseyNumber, formatReceiptValue(data.jersey_number), "latin"),
-    row(gu.pdf.jerseyName, formatReceiptValue(data.jersey_name)),
-    row(gu.pdf.categories, categories, "gujarati"),
-    row(gu.pdf.captaincy, captaincy, "gujarati"),
-    row(gu.pdf.date, dateStr, "latin"),
+    receiptRow(gu.pdf.registrationId, data.id.slice(-8).toUpperCase(), "latin"),
+    receiptRow(gu.pdf.fullName, formatPdfValue(fullName)),
+    receiptRow(gu.pdf.fathersName, formatPdfValue(data.middle_name)),
+    receiptRow(gu.pdf.age, formatPdfValue(data.age), "latin"),
+    receiptRow(gu.pdf.address, formatPdfValue(data.address)),
+    receiptRow(gu.pdf.mobile1, formatPdfValue(data.contact_number_1), "latin"),
+    receiptRow(gu.pdf.mobile2, formatPdfValue(data.contact_number_2), "latin"),
+    receiptRow(gu.pdf.jerseySize, formatPdfValue(data.jersey_size), "latin"),
+    receiptRow(gu.pdf.jerseyNumber, formatPdfValue(data.jersey_number), "latin"),
+    receiptRow(gu.pdf.jerseyName, formatPdfValue(data.jersey_name)),
+    receiptRow(gu.pdf.categories, categories, "gujarati"),
+    receiptRow(gu.pdf.captaincy, captaincy, "gujarati"),
+    receiptRow(gu.pdf.date, dateStr, "latin"),
   ];
-}
-
-function setLatinPdfFont(doc: jsPDF): void {
-  doc.setFont("helvetica", "normal");
-}
-
-function setValueFont(doc: jsPDF, font: ReceiptValueFont): void {
-  if (font === "gujarati") {
-    setGujaratiPdfFont(doc, "normal");
-  } else {
-    setLatinPdfFont(doc);
-  }
 }
 
 function measureWrappedLines(
@@ -204,11 +158,11 @@ function measureWrappedLines(
   maxWidth: number,
   font: ReceiptValueFont
 ): string[] {
-  setValueFont(doc, font);
+  setPdfTextFont(doc, font);
   return doc.splitTextToSize(text, maxWidth) as string[];
 }
 
-/** Manual receipt table — avoids jsPDF-autoTable font/glyph issues */
+/** Manual receipt table — dual-font rendering for reliable output */
 export function drawReceiptTable(
   doc: jsPDF,
   rows: ReceiptRowDefinition[],
@@ -218,16 +172,19 @@ export function drawReceiptTable(
   let y = startY;
 
   for (let index = 0; index < rows.length; index++) {
-    const row = rows[index];
+    const rowDef = rows[index];
 
     setGujaratiPdfFont(doc, "normal");
-    const labelLines = doc.splitTextToSize(row.label, LABEL_WIDTH - CELL_PADDING * 2) as string[];
+    const labelLines = doc.splitTextToSize(
+      rowDef.label,
+      LABEL_WIDTH - CELL_PADDING * 2
+    ) as string[];
 
     const valueLines = measureWrappedLines(
       doc,
-      row.value,
+      rowDef.value,
       VALUE_WIDTH - CELL_PADDING * 2,
-      row.valueFont
+      rowDef.valueFont
     );
 
     const contentLines = Math.max(labelLines.length, valueLines.length, 1);
@@ -246,7 +203,7 @@ export function drawReceiptTable(
     doc.setTextColor(...TEXT_MUTED);
     doc.text(labelLines, TABLE_MARGIN_LEFT + CELL_PADDING, y + CELL_PADDING + 3.5);
 
-    setValueFont(doc, row.valueFont);
+    setPdfTextFont(doc, rowDef.valueFont);
     doc.setTextColor(...TEXT_DARK);
     doc.text(
       valueLines,
@@ -260,12 +217,10 @@ export function drawReceiptTable(
   return y;
 }
 
-/** @deprecated Use buildReceiptRowDefinitions + drawReceiptTable */
 export function buildReceiptRows(data: RegistrationReceiptData): string[][] {
-  return buildReceiptRowDefinitions(data).map((row) => [row.label, row.value]);
+  return buildReceiptRowDefinitions(data).map((r) => [r.label, r.value]);
 }
 
-/** Kept for compatibility — prefer drawReceiptTable */
 export function getReceiptTableOptions(): null {
   return null;
 }

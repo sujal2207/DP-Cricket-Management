@@ -6,7 +6,7 @@ import { CricketersTable } from "@/components/cricketers/CricketersTable";
 export default function CricketersPage() {
   return (
     <DashboardLayout title="Cricketers">
-      <div className="space-y-8">
+      <div className="admin-page">
         <div className="page-header">
           <div>
             <h2 className="page-title">Cricketers</h2>

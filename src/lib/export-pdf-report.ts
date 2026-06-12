@@ -4,14 +4,15 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
   PDF_TABLE_HEADERS,
+  PDF_COLUMN_WIDTH_RATIOS,
   rowsToPdfTableBody,
   type ExportPlayerRow,
   type ExportStatistics,
 } from "./export-data";
 import {
   applyGujaratiFontToPdf,
-  setGujaratiPdfFont,
 } from "./pdf-gujarati-font.server";
+import { applyAutoTableCellFont, drawPdfMixedLine, drawPdfTextLine } from "./pdf-cell-utils";
 import {
   APP_BRAND_NAME,
   DEVELOPER_CREDIT,
@@ -33,9 +34,10 @@ const TEXT_DARK: [number, number, number] = [30, 41, 59];
 const TEXT_MUTED: [number, number, number] = [100, 116, 139];
 const BORDER: [number, number, number] = [226, 232, 240];
 const ROW_ALT: [number, number, number] = [248, 250, 252];
-const FONT_NAME = "NotoSansGujarati";
 
-const MARGIN = { left: 14, right: 14, top: 14, bottom: 22 };
+const MARGIN = { left: 12, right: 12, top: 14, bottom: 24 };
+const BODY_FONT_SIZE = 6.5;
+const HEAD_FONT_SIZE = 6.5;
 
 function loadLogoDataUrl(): string {
   const logoPath = path.join(
@@ -49,12 +51,23 @@ function loadLogoDataUrl(): string {
 }
 
 function getContentWidth(doc: jsPDF): number {
-  return (
-    doc.internal.pageSize.getWidth() - MARGIN.left - MARGIN.right
-  );
+  return doc.internal.pageSize.getWidth() - MARGIN.left - MARGIN.right;
 }
 
-/** Centered report header — page 1 only */
+function buildPdfColumnStyles(tableWidth: number) {
+  const styles: Record<number, { cellWidth: number; halign?: "left" | "center" | "right" }> = {};
+  PDF_COLUMN_WIDTH_RATIOS.forEach((ratio, index) => {
+    styles[index] = {
+      cellWidth: tableWidth * ratio,
+      halign:
+        index === 0 || index === 3 || index === 7 || index === 8 || index === 11
+          ? "center"
+          : "left",
+    };
+  });
+  return styles;
+}
+
 function drawReportHeader(
   doc: jsPDF,
   metadata: PdfExportMetadata,
@@ -67,7 +80,7 @@ function drawReportHeader(
   doc.addImage(logoDataUrl, "PNG", centerX - 11, y, 22, 22);
   y += 28;
 
-  setGujaratiPdfFont(doc, "bold");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(...BRAND_PURPLE);
   doc.setFontSize(16);
   doc.text(`${APP_BRAND_NAME} ${metadata.tournamentYear}`, centerX, y, {
@@ -75,7 +88,7 @@ function drawReportHeader(
   });
   y += 7;
 
-  setGujaratiPdfFont(doc, "normal");
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(11);
   doc.text(metadata.reportTitle, centerX, y, { align: "center" });
@@ -106,14 +119,13 @@ function drawReportHeader(
   return y + 6;
 }
 
-/** Minimal continuation label on pages 2+ */
 function drawContinuationHeader(
   doc: jsPDF,
   metadata: PdfExportMetadata
 ): void {
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  setGujaratiPdfFont(doc, "normal");
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(8);
   doc.text(
@@ -137,7 +149,7 @@ function drawStatisticsTable(
   const tableWidth = Math.min(120, getContentWidth(doc));
   const marginLeft = (pageWidth - tableWidth) / 2;
 
-  setGujaratiPdfFont(doc, "bold");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(...BRAND_PURPLE);
   doc.setFontSize(10);
   doc.text("Registration Summary", MARGIN.left, startY);
@@ -159,15 +171,17 @@ function drawStatisticsTable(
     body: summaryBody,
     theme: "plain",
     styles: {
-      font: FONT_NAME,
+      font: "helvetica",
       fontSize: 9,
       cellPadding: 3,
       textColor: TEXT_DARK,
       lineColor: BORDER,
       lineWidth: 0.15,
+      overflow: "linebreak",
+      valign: "middle",
     },
     headStyles: {
-      font: FONT_NAME,
+      font: "helvetica",
       fontStyle: "bold",
       fillColor: BRAND_PURPLE,
       textColor: [255, 255, 255],
@@ -175,7 +189,7 @@ function drawStatisticsTable(
     },
     columnStyles: {
       0: { cellWidth: tableWidth * 0.72 },
-      1: { cellWidth: tableWidth * 0.28, halign: "center", fontStyle: "bold" },
+      1: { cellWidth: tableWidth * 0.28, halign: "center" },
     },
     alternateRowStyles: {
       fillColor: ROW_ALT,
@@ -202,19 +216,29 @@ function drawPageFooter(
   doc.setLineWidth(0.2);
   doc.line(MARGIN.left, footerY, pageWidth - MARGIN.right, footerY);
 
-  setGujaratiPdfFont(doc, "normal");
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(6.5);
-
-  doc.text(DEVELOPER_CREDIT, pageWidth / 2, footerY + 4, { align: "center" });
-  doc.text(HOSTING_CREDIT, pageWidth / 2, footerY + 7.5, { align: "center" });
+  drawPdfTextLine(doc, DEVELOPER_CREDIT, pageWidth / 2, footerY + 4, "center");
+  drawPdfTextLine(doc, HOSTING_CREDIT, pageWidth / 2, footerY + 7.5, "center");
 
   doc.setFontSize(6);
-  doc.text(
-    `© ${metadata.tournamentYear} ${metadata.organizationName}`,
+  drawPdfMixedLine(
+    doc,
+    [
+      { text: `© ${metadata.tournamentYear} `, font: "latin" },
+      {
+        text: metadata.organizationName,
+        font: /[\u0A80-\u0AFF]/.test(metadata.organizationName)
+          ? "gujarati"
+          : "latin",
+      },
+    ],
     MARGIN.left,
-    footerY + 11
+    footerY + 11,
+    "left"
   );
+  doc.setFont("helvetica", "normal");
   doc.text(
     `Page ${pageNumber} of ${totalPages}`,
     pageWidth / 2,
@@ -228,20 +252,6 @@ function drawPageFooter(
     { align: "right" }
   );
 }
-
-const PLAYER_COLUMN_WIDTHS: Record<number, number> = {
-  0: 17,
-  1: 32,
-  2: 10,
-  3: 22,
-  4: 46,
-  5: 28,
-  6: 16,
-  7: 13,
-  8: 11,
-  9: 24,
-  10: 20,
-};
 
 export async function generatePdfExport(
   rows: ExportPlayerRow[],
@@ -257,12 +267,13 @@ export async function generatePdfExport(
   await applyGujaratiFontToPdf(doc);
   const logoDataUrl = loadLogoDataUrl();
   const tableWidth = getContentWidth(doc);
+  const columnStyles = buildPdfColumnStyles(tableWidth);
 
   let y = drawReportHeader(doc, metadata, logoDataUrl);
   y = drawStatisticsTable(doc, statistics, y);
 
   if (rows.length === 0) {
-    setGujaratiPdfFont(doc, "normal");
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(...TEXT_MUTED);
     doc.setFontSize(10);
     doc.text(
@@ -272,7 +283,7 @@ export async function generatePdfExport(
       { align: "center" }
     );
   } else {
-    setGujaratiPdfFont(doc, "bold");
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(...BRAND_PURPLE);
     doc.setFontSize(10);
     doc.text("Registered Players", MARGIN.left, y);
@@ -281,46 +292,48 @@ export async function generatePdfExport(
     autoTable(doc, {
       startY: y,
       tableWidth,
-      margin: { ...MARGIN, top: 22 },
+      margin: { ...MARGIN, top: 20 },
       head: [PDF_TABLE_HEADERS],
       body: rowsToPdfTableBody(rows),
       theme: "plain",
       showHead: "everyPage",
+      rowPageBreak: "auto",
       styles: {
-        font: FONT_NAME,
-        fontSize: 7.5,
-        cellPadding: 2.5,
+        font: "helvetica",
+        fontSize: BODY_FONT_SIZE,
+        cellPadding: 2,
         overflow: "linebreak",
         valign: "top",
         textColor: TEXT_DARK,
         lineColor: BORDER,
         lineWidth: 0.15,
+        minCellHeight: 9,
       },
       headStyles: {
-        font: FONT_NAME,
+        font: "helvetica",
         fontStyle: "bold",
         fillColor: BRAND_PURPLE,
         textColor: [255, 255, 255],
         halign: "center",
         valign: "middle",
-        fontSize: 7.5,
-        cellPadding: 3,
+        fontSize: HEAD_FONT_SIZE,
+        cellPadding: 2.5,
+        overflow: "linebreak",
+        minCellHeight: 10,
       },
       alternateRowStyles: {
         fillColor: ROW_ALT,
       },
-      columnStyles: {
-        0: { cellWidth: PLAYER_COLUMN_WIDTHS[0], halign: "center" },
-        1: { cellWidth: PLAYER_COLUMN_WIDTHS[1] },
-        2: { cellWidth: PLAYER_COLUMN_WIDTHS[2], halign: "center" },
-        3: { cellWidth: PLAYER_COLUMN_WIDTHS[3] },
-        4: { cellWidth: PLAYER_COLUMN_WIDTHS[4] },
-        5: { cellWidth: PLAYER_COLUMN_WIDTHS[5], halign: "center" },
-        6: { cellWidth: PLAYER_COLUMN_WIDTHS[6], halign: "center" },
-        7: { cellWidth: PLAYER_COLUMN_WIDTHS[7], halign: "center" },
-        8: { cellWidth: PLAYER_COLUMN_WIDTHS[8], halign: "center" },
-        9: { cellWidth: PLAYER_COLUMN_WIDTHS[9] },
-        10: { cellWidth: PLAYER_COLUMN_WIDTHS[10], halign: "center" },
+      columnStyles,
+      didParseCell: (data) => {
+        if (data.section === "head") {
+          data.cell.styles.font = "helvetica";
+          data.cell.styles.fontStyle = "bold";
+          return;
+        }
+        if (data.section === "body") {
+          applyAutoTableCellFont(data.cell.text, data.cell.styles);
+        }
       },
       didDrawPage: (data) => {
         if (data.pageNumber > 1) {

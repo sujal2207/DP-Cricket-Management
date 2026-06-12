@@ -123,8 +123,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <footer className="shrink-0 border-t border-[hsl(var(--border))]/60 px-4 py-5 sm:px-6">
-          <DeveloperCredit variant="dark" className="max-w-md mx-auto" compact />
+        <footer className="shrink-0 border-t border-[hsl(var(--border))]/60 px-4 py-3 sm:px-6">
+          <DeveloperCredit variant="dark" className="max-w-md mx-auto" />
         </footer>
       </div>
     </div>

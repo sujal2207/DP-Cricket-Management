@@ -39,6 +39,11 @@
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased;
     font-family: var(--font-noto-sans-gujarati), "Noto Sans Gujarati",
       var(--font-hind-vadodara), "Hind Vadodara", var(--font-inter), sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 
   * {
@@ -140,7 +145,11 @@
   }
 
   .export-toolbar {
-    @apply flex flex-wrap gap-2;
+    @apply flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end;
+  }
+
+  .admin-page {
+    @apply mx-auto w-full max-w-[1600px] space-y-6 sm:space-y-8;
   }
 
   .form-checkbox {
@@ -184,7 +193,12 @@
   }
 
   .table-shell {
-    @apply overflow-x-auto rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))]/40;
+    @apply -mx-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))]/40 px-1 sm:mx-0 sm:px-0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-shell table {
+    @apply min-w-[720px] w-full text-sm;
   }
 
   .table-head {
@@ -203,6 +217,15 @@
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-[hsl(var(--border))];
   }
 
   .text-gradient-brand {

@@ -1,6 +1,10 @@
 import { formatFullName } from "@/lib/validation";
-import { formatDate, formatDateShort } from "@/lib/utils";
 import { CAPTAINCY_INTEREST } from "@/lib/constants";
+import {
+  formatPdfValue,
+  formatPdfDateTime,
+  PDF_NOT_APPLICABLE,
+} from "@/lib/pdf-cell-utils";
 
 export interface CricketerExportRecord {
   _id: { toString(): string } | string;
@@ -22,10 +26,13 @@ export interface CricketerExportRecord {
 
 export interface ExportPlayerRow {
   srNo: number;
+  playerId: string;
   playerName: string;
+  fathersName: string;
   age: string;
-  mobileNumber: string;
   address: string;
+  mobileNumber: string;
+  mobileNumber2: string;
   cricketCategory: string;
   captaincyInterest: string;
   jerseySize: string;
@@ -33,34 +40,51 @@ export interface ExportPlayerRow {
   jerseyName: string;
   registrationDate: string;
   registrationSource: string;
-  playerId: string;
 }
 
 export const EXPORT_COLUMN_HEADERS: { key: keyof ExportPlayerRow; header: string }[] = [
   { key: "srNo", header: "Sr. No." },
-  { key: "playerName", header: "Player Name" },
+  { key: "playerId", header: "Registration ID" },
+  { key: "playerName", header: "Full Name" },
+  { key: "fathersName", header: "Father's / Husband's Name" },
   { key: "age", header: "Age" },
-  { key: "mobileNumber", header: "Mobile Number" },
-  { key: "address", header: "Address" },
-  { key: "cricketCategory", header: "Cricket Category" },
-  { key: "captaincyInterest", header: "Captaincy Interest" },
+  { key: "address", header: "Full Address" },
+  { key: "mobileNumber", header: "Mobile Number 1" },
+  { key: "mobileNumber2", header: "Mobile Number 2" },
   { key: "jerseySize", header: "Jersey Size" },
   { key: "jerseyNumber", header: "Jersey Number" },
   { key: "jerseyName", header: "Jersey Name" },
-  { key: "registrationDate", header: "Registration Date" },
+  { key: "cricketCategory", header: "Cricket Categories" },
+  { key: "captaincyInterest", header: "Captaincy Interest" },
+  { key: "registrationDate", header: "Registration Date & Time" },
   { key: "registrationSource", header: "Registration Source" },
-  { key: "playerId", header: "Player ID" },
+];
+
+/** Column headers used in the landscape PDF player table (no Sr. No. / Source) */
+export const PDF_TABLE_HEADERS = [
+  "Registration ID",
+  "Full Name",
+  "Father's / Husband's Name",
+  "Age",
+  "Full Address",
+  "Mobile 1",
+  "Mobile 2",
+  "Jersey Size",
+  "Jersey No.",
+  "Jersey Name",
+  "Categories",
+  "Captaincy",
+  "Reg. Date & Time",
+];
+
+/** Relative widths for PDF columns — must match PDF_TABLE_HEADERS length */
+export const PDF_COLUMN_WIDTH_RATIOS = [
+  0.055, 0.105, 0.085, 0.035, 0.125, 0.065, 0.065, 0.045, 0.045, 0.075, 0.11,
+  0.05, 0.075,
 ];
 
 export function formatExportTimestamp(date = new Date()): string {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }).format(date);
+  return formatPdfDateTime(date);
 }
 
 export function buildExportFilename(
@@ -77,20 +101,27 @@ export function buildExportRows(cricketers: CricketerExportRecord[]): ExportPlay
     const id = typeof c._id === "string" ? c._id : c._id.toString();
     return {
       srNo: index + 1,
+      playerId: id.slice(-8).toUpperCase(),
       playerName: formatFullName(c.first_name, c.middle_name, c.last_name),
-      age: c.age != null ? String(c.age) : "—",
-      mobileNumber: c.contact_number_1,
-      address: c.address,
-      cricketCategory: c.cricket_categories.join(", "),
+      fathersName: formatPdfValue(c.middle_name),
+      age: formatPdfValue(c.age),
+      address: formatPdfValue(c.address),
+      mobileNumber: formatPdfValue(c.contact_number_1),
+      mobileNumber2: formatPdfValue(c.contact_number_2),
+      cricketCategory:
+        c.cricket_categories.length > 0
+          ? c.cricket_categories.join(", ")
+          : PDF_NOT_APPLICABLE,
       captaincyInterest: (c.capacity_roles || []).includes(CAPTAINCY_INTEREST)
         ? "Yes"
         : "No",
-      jerseySize: c.jersey_size || "—",
-      jerseyNumber: c.jersey_number != null ? String(c.jersey_number) : "—",
-      jerseyName: c.jersey_name || "—",
-      registrationDate: formatDateShort(c.created_at),
-      registrationSource: c.registration_source || "Admin Panel",
-      playerId: id.slice(-8).toUpperCase(),
+      jerseySize: formatPdfValue(c.jersey_size),
+      jerseyNumber: formatPdfValue(c.jersey_number),
+      jerseyName: formatPdfValue(c.jersey_name),
+      registrationDate: formatPdfDateTime(c.created_at),
+      registrationSource: formatPdfValue(c.registration_source) === PDF_NOT_APPLICABLE
+        ? "Admin Panel"
+        : String(c.registration_source),
     };
   });
 }
@@ -144,7 +175,6 @@ export function buildExportStatistics(
   };
 }
 
-/** Flat row keyed by display header for CSV serialization */
 export function rowToCsvRecord(row: ExportPlayerRow): Record<string, string | number> {
   const record: Record<string, string | number> = {};
   for (const col of EXPORT_COLUMN_HEADERS) {
@@ -157,28 +187,16 @@ export function rowsToPdfTableBody(rows: ExportPlayerRow[]): string[][] {
   return rows.map((row) => [
     row.playerId,
     row.playerName,
+    row.fathersName,
     row.age,
-    row.mobileNumber,
     row.address,
-    row.cricketCategory,
-    row.captaincyInterest,
+    row.mobileNumber,
+    row.mobileNumber2,
     row.jerseySize,
     row.jerseyNumber,
     row.jerseyName,
+    row.cricketCategory,
+    row.captaincyInterest,
     row.registrationDate,
   ]);
 }
-
-export const PDF_TABLE_HEADERS = [
-  "Registration ID",
-  "Full Name",
-  "Age",
-  "Mobile Number",
-  "Address",
-  "Categories",
-  "Captaincy Interest",
-  "Jersey Size",
-  "Jersey Number",
-  "Jersey Name",
-  "Registration Date",
-];

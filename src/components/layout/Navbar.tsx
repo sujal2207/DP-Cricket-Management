@@ -40,17 +40,17 @@ export function Navbar({ onMenuClick, title }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/90 px-4 backdrop-blur-md lg:px-6">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 transition-colors hover:bg-[hsl(var(--muted))] lg:hidden"
+          className="shrink-0 rounded-lg p-2 transition-colors hover:bg-[hsl(var(--muted))] lg:hidden"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <AppLogo size="xs" showFrame className="hidden sm:block" />
-        <div>
-          <h1 className="text-base font-semibold tracking-tight sm:text-lg">
+        <AppLogo size="xs" showFrame className="hidden shrink-0 sm:block" />
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold tracking-tight sm:text-lg">
             {title || APP_NAME}
           </h1>
         </div>

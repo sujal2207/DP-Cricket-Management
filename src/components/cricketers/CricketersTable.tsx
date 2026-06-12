@@ -282,7 +282,7 @@ export function CricketersTable() {
         </CricketersFilterBar>
 
         <div className="mt-6 table-shell">
-          <table className="w-full text-sm">
+          <table className="text-sm">
             <thead>
               <tr className="table-head">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">ID</th>

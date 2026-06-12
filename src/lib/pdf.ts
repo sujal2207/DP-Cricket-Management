@@ -8,6 +8,7 @@ import {
   drawReceiptTable,
   type RegistrationReceiptData,
 } from "./pdf-receipt-shared";
+import { drawPdfTextLine } from "./pdf-cell-utils";
 
 export type SlipData = RegistrationReceiptData;
 
@@ -64,7 +65,7 @@ export async function generateRegistrationSlip(
     y += 4;
   }
 
-  setGujaratiPdfFont(doc, "normal");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(...BRAND_PURPLE);
   doc.setFontSize(16);
   doc.text(`${APP_BRAND_NAME} ${branding.tournamentYear}`, centerX, y, {
@@ -74,13 +75,14 @@ export async function generateRegistrationSlip(
 
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(11);
-  doc.text(branding.tournamentShortGu, centerX, y, { align: "center" });
+  drawPdfTextLine(doc, branding.tournamentShortGu, centerX, y, "center");
   y += 10;
 
   doc.setFillColor(...BRAND_PURPLE);
   doc.roundedRect(20, y, pageWidth - 40, 10, 2, 2, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(11);
+  setGujaratiPdfFont(doc, "normal");
   doc.text(gu.pdf.receiptTitle, centerX, y + 7, { align: "center" });
   y += 16;
 
@@ -96,11 +98,12 @@ export async function generateRegistrationSlip(
 
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(10);
-  doc.text(
+  drawPdfTextLine(
+    doc,
     `${branding.tournamentShortGu} માં નોંધણી કરવા બદલ આભાર.`,
     centerX,
     y,
-    { align: "center" }
+    "center"
   );
 
   const footerY = pageHeight - 22;
@@ -110,9 +113,8 @@ export async function generateRegistrationSlip(
 
   doc.setTextColor(148, 163, 184);
   doc.setFontSize(7);
-  setGujaratiPdfFont(doc, "normal");
-  doc.text(DEVELOPER_CREDIT, centerX, footerY + 5, { align: "center" });
-  doc.text(HOSTING_CREDIT, centerX, footerY + 9, { align: "center" });
+  drawPdfTextLine(doc, DEVELOPER_CREDIT, centerX, footerY + 5, "center");
+  drawPdfTextLine(doc, HOSTING_CREDIT, centerX, footerY + 9, "center");
   doc.setFont("helvetica", "normal");
   doc.text(
     `© ${new Date().getFullYear()} ${APP_BRAND_NAME}`,

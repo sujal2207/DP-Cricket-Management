@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { CheckboxGroup } from "@/components/ui/CheckboxGroup";
+import {
+  CategorySelectionBadge,
+  CategorySelectionGroup,
+} from "@/components/forms/CategorySelectionGroup";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useState } from "react";
@@ -122,8 +125,12 @@ export function CricketerForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Card title="Personal Information" description="Enter the player's personal details">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <Card
+        title="Personal Information"
+        description="Enter the player's personal details"
+        className="[&>div:last-child]:p-4 sm:[&>div:last-child]:p-5 [&>div:first-child]:px-4 [&>div:first-child]:py-3.5 sm:[&>div:first-child]:px-5"
+      >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Input
             label="First Name"
@@ -166,7 +173,11 @@ export function CricketerForm({
         </div>
       </Card>
 
-      <Card title="Contact Information" description="Primary and optional secondary contact">
+      <Card
+        title="Contact Information"
+        description="Primary and optional secondary contact"
+        className="[&>div:last-child]:p-4 sm:[&>div:last-child]:p-5 [&>div:first-child]:px-4 [&>div:first-child]:py-3.5 sm:[&>div:first-child]:px-5"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Contact Number 1"
@@ -189,6 +200,7 @@ export function CricketerForm({
       <Card
         title="Jersey Information"
         description="Jersey size, number, and name for printing"
+        className="[&>div:last-child]:p-4 sm:[&>div:last-child]:p-5 [&>div:first-child]:px-4 [&>div:first-child]:py-3.5 sm:[&>div:first-child]:px-5"
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <Select
@@ -229,23 +241,35 @@ export function CricketerForm({
 
       <Card
         title="Cricket Category Selection"
-        description={`Select 1 to ${MAX_CATEGORY_SELECTIONS} categories`}
+        description={`Select ${MAX_CATEGORY_SELECTIONS === 2 ? "1 to 2" : `1 to ${MAX_CATEGORY_SELECTIONS}`} categories`}
+        className="[&>div:last-child]:p-4 sm:[&>div:last-child]:p-5 [&>div:first-child]:px-4 [&>div:first-child]:py-3.5 sm:[&>div:first-child]:px-5"
+        action={
+          <CategorySelectionBadge
+            count={selectedCategories.length}
+            max={MAX_CATEGORY_SELECTIONS}
+            error={errors.cricket_categories?.message}
+          />
+        }
       >
-        <CheckboxGroup
-          label="Cricket Categories"
+        <CategorySelectionGroup
           options={CRICKET_CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
           selected={selectedCategories}
           onToggle={(cat) => toggleCategory(cat as (typeof CRICKET_CATEGORIES)[number])}
           maxSelections={MAX_CATEGORY_SELECTIONS}
           error={errors.cricket_categories?.message}
         />
-      </Card>
 
-      <div className="flex justify-end gap-3">
-        <Button type="submit" loading={submitting} size="lg">
-          {mode === "edit" ? "Update Cricketer" : "Register Cricketer"}
-        </Button>
-      </div>
+        <div className="mt-4 flex flex-col-reverse gap-3 border-t border-[hsl(var(--border))]/70 pt-4 sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            type="submit"
+            loading={submitting}
+            size="md"
+            className="w-full shadow-lg shadow-brand-600/20 sm:w-auto sm:min-w-[180px]"
+          >
+            {mode === "edit" ? "Update Cricketer" : "Register Cricketer"}
+          </Button>
+        </div>
+      </Card>
     </form>
   );
 }

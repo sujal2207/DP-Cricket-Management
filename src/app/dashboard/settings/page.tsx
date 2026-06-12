@@ -18,7 +18,7 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout title="Settings">
-      <div className="max-w-3xl space-y-8">
+      <div className="admin-page max-w-4xl">
         <div className="page-header">
           <div>
             <h2 className="page-title">Settings</h2>

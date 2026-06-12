@@ -78,13 +78,13 @@ export default async function PublicRegisterFormPage() {
             <p className="text-center sm:text-left">{branding.feeNoticeGu}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-5 border-t border-slate-100 pt-8">
-            <TournamentLogo size="sm" />
-            <p className="text-center text-xs text-slate-500 sm:text-sm">
+          <div className="flex flex-col items-center gap-3 border-t border-slate-100 pt-5 sm:pt-6">
+            <TournamentLogo size="sm" className="h-10 w-10 sm:h-11 sm:w-11" />
+            <p className="text-center text-xs text-slate-500">
               © {new Date().getFullYear()} {branding.organizationNameGu}. સર્વાધિકાર
               સુરક્ષિત.
             </p>
-            <DeveloperCredit variant="light" className="w-full max-w-lg" />
+            <DeveloperCredit variant="light" className="w-full max-w-2xl" />
           </div>
         </div>
       </footer>

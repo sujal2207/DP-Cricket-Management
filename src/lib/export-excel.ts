@@ -18,7 +18,7 @@ const thinBorder: Partial<ExcelJS.Borders> = {
   right: { style: "thin", color: { argb: "FFE2E8F0" } },
 };
 
-const COLUMN_WIDTHS = [8, 30, 16, 40, 24, 18, 12, 14, 20, 18, 22, 12];
+const COLUMN_WIDTHS = [6, 12, 28, 22, 8, 36, 16, 16, 10, 10, 18, 24, 14, 22, 16];
 
 export async function generateExcelExport(
   rows: ExportPlayerRow[],
