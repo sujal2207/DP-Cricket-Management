@@ -9,6 +9,7 @@ import { Moon, Sun, Monitor, Shield, Database, Users } from "lucide-react";
 import { APP_NAME } from "@/lib/constants";
 import { AdminUsersPanel } from "@/components/settings/AdminUsersPanel";
 import { RegistrationBrandingPanel } from "@/components/settings/RegistrationBrandingPanel";
+import { RegistrationExpiryPanel } from "@/components/settings/RegistrationExpiryPanel";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -54,6 +55,8 @@ export default function SettingsPage() {
         </Card>
 
         <AdminUsersPanel />
+
+        <RegistrationExpiryPanel />
 
         <RegistrationBrandingPanel />
 

@@ -12,6 +12,8 @@ import {
   findMobileRegistrationConflict,
   normalizeContactFields,
 } from "@/lib/contact-uniqueness";
+import { getRegistrationBranding } from "@/lib/registration-branding";
+import { isPublicRegistrationOpen } from "@/lib/registration-window";
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +42,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: gu.errors.validationFailed, details: parsed.error.flatten() },
         { status: 400 }
+      );
+    }
+
+    const branding = await getRegistrationBranding();
+    if (!isPublicRegistrationOpen(branding.registrationClosesOn)) {
+      return NextResponse.json(
+        { error: gu.errors.registrationClosed },
+        { status: 403 }
       );
     }
 

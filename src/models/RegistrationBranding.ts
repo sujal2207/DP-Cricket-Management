@@ -21,6 +21,7 @@ export interface IRegistrationBranding extends Document {
   hero_description_gu?: string;
   availability_notice_gu: string;
   fee_notice_gu: string;
+  registration_closes_on?: string | null;
   updated_by?: string;
   updated_at: Date;
   created_at: Date;
@@ -37,6 +38,7 @@ const RegistrationBrandingSchema = new Schema<IRegistrationBranding>(
     hero_description_gu: { type: String },
     availability_notice_gu: { type: String, required: true },
     fee_notice_gu: { type: String, required: true },
+    registration_closes_on: { type: String, default: null },
     updated_by: { type: String },
   },
   {

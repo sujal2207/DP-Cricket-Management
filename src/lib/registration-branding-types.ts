@@ -9,6 +9,9 @@ export interface RegistrationBrandingData {
   heroDescriptionGu: string;
   availabilityNoticeGu: string;
   feeNoticeGu: string;
+  /** YYYY-MM-DD (IST) — null = no deadline */
+  registrationClosesOn: string | null;
+  isRegistrationOpen: boolean;
   updatedAt?: string;
 }
 

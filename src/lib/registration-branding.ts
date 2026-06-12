@@ -8,6 +8,10 @@ import {
   sanitizeGujaratiText,
   DEFAULT_ORGANIZATION_NAME_GU,
 } from "@/lib/gujarati-text";
+import {
+  isPublicRegistrationOpen,
+  normalizeCloseDate,
+} from "@/lib/registration-window";
 import type { RegistrationBrandingInput } from "@/lib/registration-branding-validation";
 import type { RegistrationBrandingData } from "@/lib/registration-branding-types";
 import { unstable_noStore } from "next/cache";
@@ -36,9 +40,16 @@ function envYear(): string {
 }
 
 function sanitizeBranding(
-  data: RegistrationBrandingData
+  data: Omit<
+    RegistrationBrandingData,
+    "isRegistrationOpen" | "registrationClosesOn"
+  > & {
+    registrationClosesOn?: string | null;
+    isRegistrationOpen?: boolean;
+  }
 ): RegistrationBrandingData {
   const tournamentShortGu = sanitizeGujaratiText(data.tournamentShortGu);
+  const registrationClosesOn = normalizeCloseDate(data.registrationClosesOn);
   return {
     organizationNameGu: sanitizeGujaratiText(data.organizationNameGu),
     tournamentYear: data.tournamentYear.trim(),
@@ -52,6 +63,9 @@ function sanitizeBranding(
     ),
     availabilityNoticeGu: sanitizeGujaratiText(data.availabilityNoticeGu),
     feeNoticeGu: sanitizeGujaratiText(data.feeNoticeGu),
+    registrationClosesOn,
+    isRegistrationOpen:
+      data.isRegistrationOpen ?? isPublicRegistrationOpen(registrationClosesOn),
     updatedAt: data.updatedAt,
   };
 }
@@ -78,6 +92,7 @@ export function getDefaultRegistrationBranding(): RegistrationBrandingData {
     heroDescriptionGu: DEFAULT_HERO_DESCRIPTION_GU,
     availabilityNoticeGu: buildAvailabilityNoticeGu(tournamentShortGu),
     feeNoticeGu: buildFeeNoticeGu(),
+    registrationClosesOn: null,
   });
 }
 
@@ -90,8 +105,10 @@ function docToData(doc: {
   hero_description_gu?: string;
   availability_notice_gu: string;
   fee_notice_gu: string;
+  registration_closes_on?: string | null;
   updated_at?: Date;
 }): RegistrationBrandingData {
+  const registrationClosesOn = normalizeCloseDate(doc.registration_closes_on);
   return sanitizeBranding({
     organizationNameGu: doc.organization_name_gu,
     tournamentYear: doc.tournament_year,
@@ -102,6 +119,7 @@ function docToData(doc: {
     heroDescriptionGu: doc.hero_description_gu ?? DEFAULT_HERO_DESCRIPTION_GU,
     availabilityNoticeGu: doc.availability_notice_gu,
     feeNoticeGu: doc.fee_notice_gu,
+    registrationClosesOn,
     updatedAt: doc.updated_at?.toISOString(),
   });
 }
@@ -174,6 +192,42 @@ export async function updateRegistrationBranding(
     { ...payload, updated_by: updatedBy },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+
+  return docToData(doc);
+}
+
+export async function updateRegistrationExpiry(
+  closesOn: string | null,
+  updatedBy: string
+): Promise<RegistrationBrandingData> {
+  await connectDB();
+
+  const normalized = normalizeCloseDate(closesOn);
+
+  const doc = await RegistrationBranding.findOneAndUpdate(
+    { key: BRANDING_KEY },
+    {
+      registration_closes_on: normalized,
+      updated_by: updatedBy,
+    },
+    { new: true }
+  );
+
+  if (!doc) {
+    await getRegistrationBranding();
+    const updated = await RegistrationBranding.findOneAndUpdate(
+      { key: BRANDING_KEY },
+      {
+        registration_closes_on: normalized,
+        updated_by: updatedBy,
+      },
+      { new: true }
+    );
+    if (!updated) {
+      throw new Error("Failed to update registration deadline");
+    }
+    return docToData(updated);
+  }
 
   return docToData(doc);
 }

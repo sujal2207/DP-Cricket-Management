@@ -36,6 +36,12 @@ export const gu = {
     copyright: (year: number) =>
       `© ${year} ${ORGANIZATION_NAME_GU}. સર્વાધિકાર સુરક્ષિત.`,
   },
+  registration: {
+    closedTitle: "નોંધણી બંધ",
+    closedMessage:
+      "નોંધણીની છેલ્લી તારીખ પૂરી થઈ ગઈ છે. હવે નવી નોંધણી સ્વીકારવામાં આવતી નથી.",
+    openUntil: (date: string) => `નોંધણી ${date} સુધી ખુલ્લી છે`,
+  },
   form: {
     personalInfo: "વ્યક્તિગત માહિતી",
     firstName: "નામ",
@@ -96,6 +102,8 @@ export const gu = {
     duplicateMobile: "આ મોબાઇલ નંબર સાથે પહેલેથી નોંધણી થયેલ છે",
     duplicateMobileRegistered:
       "આ મોબાઇલ નંબર પહેલેથી બીજા ખેલાડીની નોંધણીમાં ઉપયોગ થયેલ છે",
+    registrationClosed:
+      "નોંધણી બંધ થઈ ગઈ છે. આ તારીખ પછી નવી નોંધણી સ્વીકારવામાં આવતી નથી.",
     submitFailed: "નોંધણી સબમિટ કરવામાં નિષ્ફળ. ફરી પ્રયાસ કરો.",
     receiptInvalid: "રસીદ માટેની માહિતી અમાન્ય છે.",
     receiptNotFound: "નોંધણી મળી નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",

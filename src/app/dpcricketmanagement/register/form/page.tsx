@@ -1,5 +1,9 @@
 import { Shield, AlertCircle, CalendarDays } from "lucide-react";
 import { PublicRegistrationForm } from "@/components/forms/PublicRegistrationForm";
+import {
+  RegistrationClosedNotice,
+  RegistrationOpenUntilNotice,
+} from "@/components/forms/RegistrationWindowNotice";
 import { TournamentLogo } from "@/components/forms/public/TournamentLogo";
 import { DeveloperCredit } from "@/components/layout/DeveloperCredit";
 import { RegistrationBrandingProvider } from "@/components/forms/RegistrationBrandingProvider";
@@ -55,7 +59,18 @@ export default async function PublicRegisterFormPage() {
       </section>
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-        <PublicRegistrationForm />
+        {!branding.isRegistrationOpen ? (
+          <RegistrationClosedNotice closesOn={branding.registrationClosesOn} />
+        ) : (
+          <>
+            {branding.registrationClosesOn && (
+              <RegistrationOpenUntilNotice
+                closesOn={branding.registrationClosesOn}
+              />
+            )}
+            <PublicRegistrationForm />
+          </>
+        )}
       </main>
 
       <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6">
