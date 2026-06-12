@@ -1,0 +1,221 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input-bg: 0 0% 100%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142.1 76.2% 36.3%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --sidebar: 210 40% 98%;
+    --accent: 142.1 76.2% 36.3%;
+    --elevated: 210 40% 98%;
+  }
+
+  .dark {
+    --background: 222 47% 4.5%;
+    --foreground: 210 40% 98%;
+    --muted: 217 33% 11%;
+    --muted-foreground: 215 16% 58%;
+    --border: 217 28% 14%;
+    --input-bg: 222 47% 6.5%;
+    --input: 217 28% 14%;
+    --ring: 142.1 70.6% 45.3%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
+    --sidebar: 222 47% 3.5%;
+    --accent: 142.1 70.6% 45.3%;
+    --elevated: 217 33% 9%;
+  }
+
+  body {
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased;
+    font-family: var(--font-noto-sans-gujarati), "Noto Sans Gujarati",
+      var(--font-hind-vadodara), "Hind Vadodara", var(--font-inter), sans-serif;
+  }
+
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+
+  .gu-text,
+  .gujarati-page {
+    font-family: var(--font-noto-sans-gujarati), "Noto Sans Gujarati",
+      var(--font-hind-vadodara), "Hind Vadodara", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+    word-spacing: 0.04em;
+  }
+
+  .gu-text input,
+  .gu-text textarea,
+  .gu-text select,
+  .gu-text button,
+  .gujarati-page input,
+  .gujarati-page textarea,
+  .gujarati-page select,
+  .gujarati-page button {
+    font-family: inherit;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+
+  .gu-text h1,
+  .gu-text h2,
+  .gu-text h3,
+  .gujarati-page h1,
+  .gujarati-page h2,
+  .gujarati-page h3 {
+    line-height: 1.45;
+    letter-spacing: 0.005em;
+  }
+
+  .font-gujarati {
+    font-family: var(--font-noto-sans-gujarati), "Noto Sans Gujarati",
+      var(--font-hind-vadodara), "Hind Vadodara", sans-serif;
+  }
+}
+
+@layer components {
+  .form-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))];
+  }
+
+  .form-hint {
+    @apply text-xs text-[hsl(var(--muted-foreground))];
+  }
+
+  .form-error {
+    @apply text-xs font-medium text-red-400;
+  }
+
+  .form-control {
+    @apply h-11 w-full rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))] px-3.5 text-sm text-[hsl(var(--foreground))] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] transition-all duration-200 placeholder:text-[hsl(var(--muted-foreground))]/70 hover:border-slate-400/80 focus:border-brand-500/80 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:hover:border-slate-600;
+  }
+
+  textarea.form-control {
+    @apply h-auto min-h-[108px] py-3 leading-relaxed;
+  }
+
+  .form-control-error {
+    @apply border-red-500/60 focus:border-red-500 focus:ring-red-500/20;
+  }
+
+  .form-control-open {
+    @apply border-brand-500/80 ring-2 ring-brand-500/20;
+  }
+
+  .dropdown-panel {
+    @apply absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--elevated))] p-1.5 shadow-2xl shadow-black/40 backdrop-blur-sm;
+  }
+
+  .dropdown-option {
+    @apply flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors duration-150;
+  }
+
+  .dropdown-option-active {
+    @apply bg-[hsl(var(--muted))]/80 text-[hsl(var(--foreground))];
+  }
+
+  .dropdown-option-selected {
+    @apply bg-brand-500/15 font-medium text-brand-400;
+  }
+
+  .filter-panel {
+    @apply rounded-2xl border border-[hsl(var(--border))] bg-gradient-to-b from-[hsl(var(--muted))]/40 to-[hsl(var(--card))] p-5 shadow-sm sm:p-6;
+  }
+
+  .export-toolbar {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .form-checkbox {
+    @apply h-[18px] w-[18px] shrink-0 cursor-pointer rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))] text-brand-500 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:ring-offset-0 checked:border-brand-500 checked:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .checkbox-card {
+    @apply flex cursor-pointer items-center gap-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))] p-4 shadow-sm transition-all duration-200 hover:border-slate-500/60;
+  }
+
+  .checkbox-card-selected {
+    @apply border-brand-500/60 bg-brand-500/10 ring-1 ring-brand-500/20;
+  }
+
+  .checkbox-card-disabled {
+    @apply cursor-not-allowed opacity-50 hover:border-[hsl(var(--border))];
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] shadow-card;
+  }
+
+  .surface-card-elevated {
+    @apply surface-card shadow-lg shadow-black/20 transition-all duration-300 hover:border-[hsl(var(--border))]/80 hover:shadow-xl hover:shadow-black/25;
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-500/20 hover:shadow-lg hover:shadow-brand-500/5 sm:p-6;
+  }
+
+  .page-header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold tracking-tight sm:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-[hsl(var(--muted-foreground))];
+  }
+
+  .table-shell {
+    @apply overflow-x-auto rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--input-bg))]/40;
+  }
+
+  .table-head {
+    @apply border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50;
+  }
+
+  .table-row {
+    @apply border-b border-[hsl(var(--border))]/60 transition-colors hover:bg-[hsl(var(--muted))]/25;
+  }
+
+  .activity-item {
+    @apply flex items-start justify-between gap-3 rounded-xl border border-[hsl(var(--border))]/80 bg-[hsl(var(--input-bg))]/60 p-4 transition-colors hover:border-brand-500/20 hover:bg-[hsl(var(--muted))]/30;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-brand-400 to-emerald-300 bg-clip-text text-transparent;
+  }
+
+  @media print {
+    body,
+    .gu-text,
+    .gujarati-page {
+      font-family: "Noto Sans Gujarati", "Hind Vadodara", sans-serif !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "dp-cricket-management",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/next-port.js dev",
+    "build": "next build",
+    "start": "node scripts/next-port.js start",
+    "lint": "next lint",
+    "verify:gujarati": "node scripts/verify-gujarati-rendering.js",
+    "generate:favicons": "node scripts/generate-favicons.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "jose": "^5.9.6",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.468.0",
+    "mongoose": "^8.9.3",
+    "next": "^15.1.3",
+    "next-themes": "^0.4.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.0",
+    "tailwind-merge": "^2.6.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.3",
+    "postcss": "^8.4.49",
+    "sharp": "^0.35.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}
