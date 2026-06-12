@@ -6,12 +6,14 @@ import {
   JERSEY_SIZES,
   JERSEY_NUMBER_MIN,
   JERSEY_NUMBER_MAX,
+  AGE_MIN,
+  AGE_MAX,
 } from "./constants";
 import { gu } from "./translations/publicRegistrationGu";
 import { sanitizeString } from "./sanitize";
 
-const mobileRegex = /^(\+?[1-9]\d{6,14}|[6-9]\d{9})$/;
-const indianMobileRegex = /^[6-9]\d{9}$/;
+const mobileRegex = /^(\+?[1-9]\d{6,14}|\d{10})$/;
+const indianMobileRegex = /^\d{10}$/;
 const digitsOnlyRegex = /^\d+$/;
 const nameRegex = /^[\u0A80-\u0AFFa-zA-Z\s]{2,}$/;
 const jerseyNameRegex = /^[\u0A80-\u0AFFa-zA-Z\s.'-]{2,30}$/;
@@ -61,6 +63,22 @@ const publicJerseyNameSchema = sanitizedString.pipe(
     .regex(jerseyNameRegex, gu.errors.jerseyNameInvalid)
 );
 
+const ageSchema = z.coerce
+  .number({
+    invalid_type_error: "Age is required",
+  })
+  .int("Age must be a whole number")
+  .min(AGE_MIN, `Age must be between ${AGE_MIN} and ${AGE_MAX}`)
+  .max(AGE_MAX, `Age must be between ${AGE_MIN} and ${AGE_MAX}`);
+
+const publicAgeSchema = z.coerce
+  .number({
+    invalid_type_error: gu.errors.ageRequired,
+  })
+  .int(gu.errors.ageInvalid)
+  .min(AGE_MIN, gu.errors.ageRange)
+  .max(AGE_MAX, gu.errors.ageRange);
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -83,6 +101,7 @@ export const cricketerSchema = z
     address: sanitizedString.pipe(
       z.string().min(1, "Full address is required").max(500)
     ),
+    age: ageSchema,
     contact_number_1: z
       .string()
       .min(1, "Contact number 1 is required")
@@ -143,6 +162,7 @@ export const publicCricketerSchema = z
         .min(10, gu.errors.addressMin)
         .max(500)
     ),
+    age: publicAgeSchema,
     contact_number_1: sanitizedString.pipe(
       z
         .string()
@@ -185,9 +205,18 @@ export const publicCricketerSchema = z
     }
   );
 
+export const receiptRequestSchema = z.object({
+  id: z.string().trim().min(1),
+  contact_number_1: z
+    .string()
+    .trim()
+    .regex(indianMobileRegex, gu.errors.mobileInvalid),
+});
+
 export type CricketerFormData = z.infer<typeof cricketerSchema>;
 export type PublicCricketerFormData = z.infer<typeof publicCricketerSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
+export type ReceiptRequestData = z.infer<typeof receiptRequestSchema>;
 
 export function formatFullName(
   first: string,

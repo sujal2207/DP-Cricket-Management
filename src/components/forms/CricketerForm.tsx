@@ -24,6 +24,7 @@ const defaultValues = {
   middle_name: "",
   last_name: "",
   address: "",
+  age: "",
   contact_number_1: "",
   contact_number_2: "",
   jersey_size: "",
@@ -143,11 +144,22 @@ export function CricketerForm({
             error={errors.last_name?.message}
           />
         </div>
-        <div className="mt-4">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Age"
+            required
+            type="number"
+            min={10}
+            max={80}
+            placeholder="10–80"
+            {...register("age", { valueAsNumber: true })}
+            error={errors.age?.message}
+          />
           <Textarea
             label="Full Address"
             required
             rows={3}
+            className="sm:col-span-1"
             {...register("address")}
             error={errors.address?.message}
           />

@@ -36,6 +36,7 @@ interface Cricketer {
   middle_name: string;
   last_name: string;
   address: string;
+  age?: number;
   contact_number_1: string;
   contact_number_2?: string;
   jersey_size?: string;
@@ -286,6 +287,7 @@ export function CricketersTable() {
               <tr className="table-head">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">ID</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">Full Name</th>
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] sm:table-cell">Age</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] md:table-cell">Address</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">Contact 1</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))] lg:table-cell">Contact 2</th>
@@ -302,7 +304,7 @@ export function CricketersTable() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="table-row">
-                    {Array.from({ length: 12 }).map((_, j) => (
+                    {Array.from({ length: 13 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 animate-pulse rounded bg-[hsl(var(--muted))]" />
                       </td>
@@ -311,7 +313,7 @@ export function CricketersTable() {
                 ))
               ) : cricketers.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-12 text-center text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={13} className="px-4 py-12 text-center text-[hsl(var(--muted-foreground))]">
                     No cricketers found
                   </td>
                 </tr>
@@ -323,6 +325,9 @@ export function CricketersTable() {
                     </td>
                     <td className="px-4 py-3 font-medium font-gujarati">
                       {formatFullName(c.first_name, c.middle_name, c.last_name)}
+                    </td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      {c.age != null ? c.age : "—"}
                     </td>
                     <td className="hidden max-w-[200px] truncate px-4 py-3 font-gujarati text-[hsl(var(--muted-foreground))] md:table-cell">
                       {c.address}
@@ -431,6 +436,7 @@ export function CricketersTable() {
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Detail label="Full Name" value={formatFullName(viewCricketer.first_name, viewCricketer.middle_name, viewCricketer.last_name)} />
+              <Detail label="Age" value={viewCricketer.age != null ? String(viewCricketer.age) : "—"} />
               <Detail label="Contact 1" value={viewCricketer.contact_number_1} />
               <Detail label="Contact 2" value={viewCricketer.contact_number_2 || "—"} />
               <Detail label="Registered" value={formatDate(viewCricketer.created_at)} />
@@ -477,6 +483,7 @@ export function CricketersTable() {
               middle_name: editCricketer.middle_name,
               last_name: editCricketer.last_name,
               address: editCricketer.address,
+              age: editCricketer.age ?? ("" as unknown as number),
               contact_number_1: editCricketer.contact_number_1,
               contact_number_2: editCricketer.contact_number_2 || "",
               jersey_size: (editCricketer.jersey_size ||

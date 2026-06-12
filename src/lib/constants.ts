@@ -31,6 +31,9 @@ export type JerseySize = (typeof JERSEY_SIZES)[number];
 export const JERSEY_NUMBER_MIN = 1;
 export const JERSEY_NUMBER_MAX = 99;
 
+export const AGE_MIN = 10;
+export const AGE_MAX = 80;
+
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cricketer Management System";
 
 export const APP_BRAND_NAME = "DP Cricket Tournament";
@@ -38,7 +41,9 @@ export const APP_BRAND_NAME = "DP Cricket Tournament";
 export const DEVELOPER_NAME = "Sujal Lalajibhai Paghadal";
 export const DEVELOPER_COMPANY = "JBS Technology";
 export const DEVELOPER_CREDIT_LABEL = "Developed & Maintained by";
+export const HOSTING_CREDIT_LABEL = "Hosted & Managed by";
 export const DEVELOPER_CREDIT = `${DEVELOPER_CREDIT_LABEL} ${DEVELOPER_NAME} (${DEVELOPER_COMPANY})`;
+export const HOSTING_CREDIT = `${HOSTING_CREDIT_LABEL} ${DEVELOPER_COMPANY}`;
 
 export const PUBLIC_REGISTRATION_PATH = "/dpcricketmanagement/register/form";
 

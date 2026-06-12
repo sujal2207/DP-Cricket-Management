@@ -6,6 +6,8 @@ import {
   JERSEY_SIZES,
   JERSEY_NUMBER_MIN,
   JERSEY_NUMBER_MAX,
+  AGE_MIN,
+  AGE_MAX,
   JerseySize,
 } from "@/lib/constants";
 import { normalizeTextInput } from "@/lib/gujarati-normalize";
@@ -23,6 +25,7 @@ export interface ICricketer extends Document {
   middle_name: string;
   last_name: string;
   address: string;
+  age?: number;
   contact_number_1: string;
   contact_number_2?: string;
   jersey_size: JerseySize | "";
@@ -41,6 +44,11 @@ const CricketerSchema = new Schema<ICricketer>(
     middle_name: { type: String, required: true, trim: true },
     last_name: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
+    age: {
+      type: Number,
+      min: AGE_MIN,
+      max: AGE_MAX,
+    },
     contact_number_1: { type: String, required: true, trim: true },
     contact_number_2: { type: String, trim: true, default: "" },
     jersey_size: {

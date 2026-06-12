@@ -1,107 +1,170 @@
 import { jsPDF } from "jspdf";
-import { formatFullName } from "./validation";
-import { formatDate } from "./utils";
-import { CAPTAINCY_INTEREST } from "./constants";
-import { gu, getCategoryLabel } from "./translations/publicRegistrationGu";
+import { APP_BRAND_NAME, DEVELOPER_CREDIT, HOSTING_CREDIT } from "./constants";
+import { gu } from "./translations/publicRegistrationGu";
 import type { RegistrationBrandingData } from "./registration-branding-types";
 import { applyGujaratiFontToPdf, setGujaratiPdfFont } from "./pdf-gujarati-font";
+import {
+  buildReceiptRowDefinitions,
+  drawReceiptTable,
+  type RegistrationReceiptData,
+} from "./pdf-receipt-shared";
 
-export interface SlipData {
-  id: string;
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  contact_number_1: string;
-  cricket_categories: string[];
-  capacity_roles: string[];
-  jersey_size?: string;
-  jersey_number?: number;
-  jersey_name?: string;
-  created_at?: string;
+export type SlipData = RegistrationReceiptData;
+
+const BRAND_PURPLE: [number, number, number] = [46, 0, 75];
+const TEXT_MUTED: [number, number, number] = [100, 116, 139];
+const BORDER: [number, number, number] = [226, 232, 240];
+
+function triggerBrowserDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+async function loadLogoDataUrlClient(): Promise<string | null> {
+  try {
+    const response = await fetch("/images/dp-cricket-tournament-logo.png");
+    if (!response.ok) return null;
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `data:image/png;base64,${btoa(binary)}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateRegistrationSlip(
   data: SlipData,
   branding: RegistrationBrandingData
 ): Promise<jsPDF> {
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   await applyGujaratiFontToPdf(doc);
 
-  const fullName = formatFullName(data.first_name, data.middle_name, data.last_name);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const centerX = pageWidth / 2;
+  let y = 16;
 
-  doc.setFillColor(22, 163, 74);
-  doc.rect(0, 0, 210, 40, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  setGujaratiPdfFont(doc, "bold");
-  doc.text(branding.tournamentShortGu, 105, 20, { align: "center" });
-  doc.setFontSize(11);
+  const logoDataUrl = await loadLogoDataUrlClient();
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", centerX - 14, y, 28, 28);
+    y += 34;
+  } else {
+    y += 4;
+  }
+
   setGujaratiPdfFont(doc, "normal");
-  doc.text(gu.pdf.slip, 105, 32, { align: "center" });
-
-  doc.setTextColor(30, 41, 59);
-  doc.setFontSize(10);
-  let y = 55;
-
-  const rows: [string, string][] = [
-    [gu.pdf.registrationId, data.id.slice(-8).toUpperCase()],
-    [gu.pdf.fullName, fullName],
-    [gu.pdf.mobile, data.contact_number_1],
-    [
-      gu.pdf.categories,
-      data.cricket_categories.map((c) => getCategoryLabel(c)).join(", "),
-    ],
-    [
-      gu.pdf.captaincy,
-      data.capacity_roles.includes(CAPTAINCY_INTEREST) ? gu.success.yes : gu.success.no,
-    ],
-  ];
-
-  if (data.jersey_size && data.jersey_number != null) {
-    rows.push([gu.pdf.jerseySize, data.jersey_size]);
-    rows.push([gu.pdf.jerseyNumber, String(data.jersey_number)]);
-  }
-  if (data.jersey_name) {
-    rows.push([gu.pdf.jerseyName, data.jersey_name]);
-  }
-
-  if (data.created_at) {
-    rows.push([gu.pdf.date, formatDate(data.created_at)]);
-  }
-
-  rows.forEach(([label, value]) => {
-    setGujaratiPdfFont(doc, "bold");
-    doc.text(`${label}:`, 20, y);
-    setGujaratiPdfFont(doc, "normal");
-    const lines = doc.splitTextToSize(value, 120);
-    doc.text(lines, 70, y);
-    y += Math.max(8, lines.length * 6);
+  doc.setTextColor(...BRAND_PURPLE);
+  doc.setFontSize(16);
+  doc.text(`${APP_BRAND_NAME} ${branding.tournamentYear}`, centerX, y, {
+    align: "center",
   });
+  y += 7;
 
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(11);
+  doc.text(branding.tournamentShortGu, centerX, y, { align: "center" });
   y += 10;
-  doc.setFontSize(8);
-  doc.setTextColor(190, 18, 60);
-  setGujaratiPdfFont(doc, "normal");
-  const feeLines = doc.splitTextToSize(branding.feeNoticeGu, 170);
-  doc.text(feeLines, 105, y, { align: "center" });
-  y += feeLines.length * 5 + 6;
 
+  doc.setFillColor(...BRAND_PURPLE);
+  doc.roundedRect(20, y, pageWidth - 40, 10, 2, 2, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text(gu.pdf.receiptTitle, centerX, y + 7, { align: "center" });
+  y += 16;
+
+  y = drawReceiptTable(doc, buildReceiptRowDefinitions(data), y);
+  y += 10;
+
+  doc.setTextColor(190, 18, 60);
   doc.setFontSize(9);
-  doc.setTextColor(100, 116, 139);
+  setGujaratiPdfFont(doc, "normal");
+  const feeLines = doc.splitTextToSize(branding.feeNoticeGu, pageWidth - 40);
+  doc.text(feeLines, centerX, y, { align: "center" });
+  y += feeLines.length * 4.5 + 8;
+
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(10);
   doc.text(
     `${branding.tournamentShortGu} માં નોંધણી કરવા બદલ આભાર.`,
-    105,
+    centerX,
     y,
+    { align: "center" }
+  );
+
+  const footerY = pageHeight - 22;
+  doc.setDrawColor(...BORDER);
+  doc.setLineWidth(0.2);
+  doc.line(20, footerY, pageWidth - 20, footerY);
+
+  doc.setTextColor(148, 163, 184);
+  doc.setFontSize(7);
+  setGujaratiPdfFont(doc, "normal");
+  doc.text(DEVELOPER_CREDIT, centerX, footerY + 5, { align: "center" });
+  doc.text(HOSTING_CREDIT, centerX, footerY + 9, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    `© ${new Date().getFullYear()} ${APP_BRAND_NAME}`,
+    centerX,
+    footerY + 13,
     { align: "center" }
   );
 
   return doc;
 }
 
+async function downloadReceiptViaApi(data: SlipData): Promise<void> {
+  const response = await fetch("/api/public/receipt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: data.id,
+      contact_number_1: data.contact_number_1,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error || gu.errors.receiptFailed);
+  }
+
+  const blob = await response.blob();
+  if (!blob.size || blob.type !== "application/pdf") {
+    throw new Error(gu.errors.receiptFailed);
+  }
+
+  triggerBrowserDownload(blob, `dp-registration-receipt-${data.id.slice(-8)}.pdf`);
+}
+
 export async function downloadRegistrationSlip(
   data: SlipData,
   branding: RegistrationBrandingData
 ): Promise<void> {
-  const doc = await generateRegistrationSlip(data, branding);
-  doc.save(`dp-registration-${data.id.slice(-8)}.pdf`);
+  let apiError: Error | null = null;
+
+  try {
+    await downloadReceiptViaApi(data);
+    return;
+  } catch (error) {
+    apiError =
+      error instanceof Error ? error : new Error(gu.errors.receiptFailed);
+  }
+
+  try {
+    const doc = await generateRegistrationSlip(data, branding);
+    doc.save(`dp-registration-receipt-${data.id.slice(-8)}.pdf`);
+  } catch {
+    throw apiError ?? new Error(gu.errors.receiptFailed);
+  }
 }

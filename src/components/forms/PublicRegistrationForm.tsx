@@ -15,6 +15,7 @@ import {
   PublicFormInput,
   stripToDigits,
   stripJerseyNumber,
+  stripAge,
   blockNonNumericKey,
 } from "@/components/forms/public/PublicFormInput";
 import { PublicFormTextarea } from "@/components/forms/public/PublicFormTextarea";
@@ -32,6 +33,7 @@ const defaultValues = {
   middle_name: "",
   last_name: "",
   address: "",
+  age: "",
   contact_number_1: "",
   contact_number_2: "",
   jersey_size: "",
@@ -202,12 +204,42 @@ export function PublicRegistrationForm() {
             error={errors.last_name?.message}
           />
         </div>
-        <div className="mt-4">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Controller
+            name="age"
+            control={control}
+            render={({ field }) => (
+              <PublicFormInput
+                label={gu.form.age}
+                required
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder={gu.form.agePlaceholder}
+                maxLength={2}
+                aria-invalid={!!errors.age}
+                value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                onKeyDown={blockNonNumericKey}
+                onChange={(e) => {
+                  field.onChange(stripAge(e.target.value));
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  field.onChange(stripAge(e.clipboardData.getData("text")));
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+                error={errors.age?.message}
+                hint={gu.form.agePlaceholder}
+              />
+            )}
+          />
           <PublicFormTextarea
             label={gu.form.fullAddress}
             required
             rows={3}
             aria-invalid={!!errors.address}
+            className="sm:col-span-1"
             {...register("address")}
             error={errors.address?.message}
           />

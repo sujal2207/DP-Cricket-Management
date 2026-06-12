@@ -11,6 +11,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { Lock } from "lucide-react";
 import { APP_NAME } from "@/lib/constants";
 import { AppLogo } from "@/components/ui/AppLogo";
+import { DeveloperCredit } from "@/components/layout/DeveloperCredit";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -72,11 +73,12 @@ export default function LoginPage() {
             Register players, track categories, and manage your cricket organization with ease.
           </p>
         </div>
-        <p className="text-brand-200 text-sm">Secure admin access only</p>
+        <DeveloperCredit variant="brand" className="max-w-sm" />
       </div>
 
-      <div className="flex flex-1 items-center justify-center bg-[hsl(var(--background))] p-6">
-        <div className="w-full max-w-md">
+      <div className="flex flex-1 flex-col bg-[hsl(var(--background))]">
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="w-full max-w-md">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <AppLogo size="xs" showFrame priority />
             <h1 className="text-lg font-bold">{APP_NAME}</h1>
@@ -118,7 +120,12 @@ export default function LoginPage() {
               </Button>
             </form>
           </div>
+          </div>
         </div>
+
+        <footer className="shrink-0 border-t border-[hsl(var(--border))]/60 px-4 py-5 sm:px-6">
+          <DeveloperCredit variant="dark" className="max-w-md mx-auto" compact />
+        </footer>
       </div>
     </div>
   );

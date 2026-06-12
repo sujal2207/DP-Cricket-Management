@@ -11,6 +11,7 @@ const publicPaths = [
   "/api/auth/login",
   "/api/public/csrf",
   "/api/public/register",
+  "/api/public/receipt",
 ];
 
 export async function middleware(request: NextRequest) {
