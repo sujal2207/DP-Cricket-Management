@@ -6,7 +6,7 @@ export interface IAdminUser extends Document {
   created_by: string;
   created_at: Date;
 }
-
+                                                        
 const AdminUserSchema = new Schema<IAdminUser>(
   {
     email: {
